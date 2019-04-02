@@ -187,7 +187,7 @@
 		"ms": "2.1.1",
 		"nan": "2.13.2",
 		"nested-property": "0.0.7",
-		"nodemailer": "5.1.1",
+		"nodemailer": "6.0.0",
 		"nprogress": "0.2.0",
 		"object-assign-deep": "0.4.0",
 		"os-utils": "0.0.14",
