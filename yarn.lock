@@ -1312,10 +1312,10 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-apexcharts@3.6.4:
-  version "3.6.4"
-  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.6.4.tgz#f11cdff2ec4a5a8fd4e82d106356015704624d44"
-  integrity sha512-jr4LrJUGyNnk9SWYriV2FOukUIcoBi0wgeZgCuFpPQb+SeggL6u8NDHSmJU/1ZQ6EBcLgEs6fEmAfRS6DSzA5w==
+apexcharts@3.6.5:
+  version "3.6.5"
+  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.6.5.tgz#6ca9e2e501451d3fff436f8e8ae05fd12b5476b5"
+  integrity sha512-HSDNjTPMEpQaM0MadPj9f6gNvBKSmQXuC100h4Ev2mQFjC1rJId6b1KgF2yKh0In+iXuTXxszI58ozWhKNkbYQ==
   dependencies:
     promise-polyfill "8.1.0"
     svg.draggable.js "^2.2.1"
@@ -2617,12 +2617,7 @@ commander@2.17.x:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.17.1.tgz#bd77ab7de6de94205ceacc72f1716d29f20a77bf"
   integrity sha512-wPMUt6FnH2yzG95SA6mzjQOEKUU3aLaDEmzs1ti+1E9h+CsrZghRlqEM/EJ4KscsQVG8uNN4uVreUeT8+drlgg==
 
-commander@2.19.0, commander@~2.19.0:
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.19.0.tgz#f6198aa84e5b83c46054b94ddedbfed5ee9ff12a"
-  integrity sha512-6tvAOO+D6OENvRAh524Dh9jcfKTYDQAqvqezbCW82xj5X0pSrcpxtvRKHLG0yBY6SD7PSDrJaj+0AiOcKVd1Xg==
-
-commander@^2.12.1, commander@^2.19.0:
+commander@2.20.0, commander@^2.12.1, commander@^2.19.0:
   version "2.20.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz#d58bb2b5c1ee8f87b0d340027e9e94e222c5a422"
   integrity sha512-7j2y+40w61zy6YC2iRNpUe/NwhNyoXrYpHMrSunaMG64nRnaf96zO/KMQR4OyN/UnE5KLyEBnKHd4aG3rskjpQ==
@@ -2631,6 +2626,11 @@ commander@~2.13.0:
   version "2.13.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.13.0.tgz#6964bca67685df7c1f1430c584f07d7597885b9c"
   integrity sha512-MVuS359B+YzaWqjCL/c+22gfryv+mCBPHAv3zyVI2GN8EY6IRP8VwtasXn8jyyhvvq84R4ImN1OKRtcbIasjYA==
+
+commander@~2.19.0:
+  version "2.19.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-2.19.0.tgz#f6198aa84e5b83c46054b94ddedbfed5ee9ff12a"
+  integrity sha512-6tvAOO+D6OENvRAh524Dh9jcfKTYDQAqvqezbCW82xj5X0pSrcpxtvRKHLG0yBY6SD7PSDrJaj+0AiOcKVd1Xg==
 
 commander@~2.8.1:
   version "2.8.1"
@@ -4229,20 +4229,15 @@ file-entry-cache@^5.0.1:
   dependencies:
     flat-cache "^2.0.1"
 
-file-type@10.9.0:
-  version "10.9.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-10.9.0.tgz#f6c12c7cb9e6b8aeefd6917555fd4f9eadf31891"
-  integrity sha512-9C5qtGR/fNibHC5gzuMmmgnjH3QDDLKMa8lYe9CiZVmAnI4aUaoMh40QyUPzzs0RYo837SOBKh7TYwle4G8E4w==
+file-type@10.10.0, file-type@^10.4.0, file-type@^10.7.0:
+  version "10.10.0"
+  resolved "https://registry.yarnpkg.com/file-type/-/file-type-10.10.0.tgz#b7cbc8ec48871edd7a3629e0a6d01b2b80a4d56c"
+  integrity sha512-3CTQE/db3dnK2jsfd4XiXMKw9nD0QVEMRLdBzqYDRr5BvYMUccDpP8hMc1uPb1VZ9Iw/cAJjYPNwJ5UzxGqsRg==
 
 file-type@5.2.0, file-type@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/file-type/-/file-type-5.2.0.tgz#2ddbea7c73ffe36368dfae49dc338c058c2b8ad6"
   integrity sha1-LdvqfHP/42No365J3DOMBYwritY=
-
-file-type@^10.4.0, file-type@^10.7.0:
-  version "10.10.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-10.10.0.tgz#b7cbc8ec48871edd7a3629e0a6d01b2b80a4d56c"
-  integrity sha512-3CTQE/db3dnK2jsfd4XiXMKw9nD0QVEMRLdBzqYDRr5BvYMUccDpP8hMc1uPb1VZ9Iw/cAJjYPNwJ5UzxGqsRg==
 
 file-type@^3.8.0:
   version "3.9.0"
@@ -6382,10 +6377,10 @@ koa-slow@2.1.0:
     lodash.isregexp "3.0.5"
     q "1.4.1"
 
-koa-views@6.1.5:
-  version "6.1.5"
-  resolved "https://registry.yarnpkg.com/koa-views/-/koa-views-6.1.5.tgz#9fe3613520238528592b269a535a665c38af4d4a"
-  integrity sha512-1I9nLqvvqRw9R183Wwsfo8my+2uZOUXOAC7mLCs6BYaNS/p+mvNzk2CFi9vu89FLolajunEXtXtGkgsJdm5lkw==
+koa-views@6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/koa-views/-/koa-views-6.2.0.tgz#6150d5cb47034514898e9e8aefe6d3acc1456b5c"
+  integrity sha512-Y1rCFd4I5uSjZg0r4Zzs4hDjYTSGHhdBM5DuEhccWzknWikwOfc2ph/DkrocKhtQfFbLPHkkz/Ox38AL+p99BA==
   dependencies:
     consolidate "^0.15.0"
     debug "^4.1.0"
@@ -11272,20 +11267,20 @@ vue-hot-reload-api@^2.3.0:
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.3.3.tgz#2756f46cb3258054c5f4723de8ae7e87302a1ccf"
   integrity sha512-KmvZVtmM26BQOMK1rwUZsrqxEGeKiYSZGA7SNWE6uExx8UX/cj9hq2MRV/wWC3Cq6AoeDGk57rL9YMFRel/q+g==
 
-vue-i18n@8.9.0:
-  version "8.9.0"
-  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-8.9.0.tgz#5f084001fe5b4c7ad8c00ee5f11396a88ff2e55b"
-  integrity sha512-8wr/D9yU8CLC8ne9stdQn/N58E7GRSUSO75bCucj2AIFTDyjGfoze5RxFvh2w3e7yxgnz5x+ooOIcoX59PHguQ==
+vue-i18n@8.10.0:
+  version "8.10.0"
+  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-8.10.0.tgz#e95f215b5548bedf5610c14506acb3438717b6bd"
+  integrity sha512-n2A9Q5dbwk3q4r6cOdT5jJaMb/mV4JtkNmgSiUNtoDp+N00bQHzpALM2XRyNzu7WZSHyi10/wBrNKl0unNKpVg==
 
 vue-js-modal@1.3.28:
   version "1.3.28"
   resolved "https://registry.yarnpkg.com/vue-js-modal/-/vue-js-modal-1.3.28.tgz#fc83d8884802b22d6eb2ba5f5c4f7ec33d71a766"
   integrity sha512-ory5ymvMVDnyd/+i+DY4OZN1W8aS4gyPYwU8yvfhTc1sNTNEReBNd94MmBCOjJRihsaEl5daeWTKvsjujnqlsw==
 
-vue-json-pretty@1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/vue-json-pretty/-/vue-json-pretty-1.4.1.tgz#11599cc8f0beaaf2ba1653010535a5b6071867f9"
-  integrity sha512-EYLyhTb21unHr91U2W9Bo4EWA2TA67uVmRx024f8UBZVOqCkddSV4IBALzy24h+yo+XzQg6yTYWe+rbcxqXokQ==
+vue-json-pretty@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/vue-json-pretty/-/vue-json-pretty-1.6.0.tgz#ea3efaa7d574ee987e636908395ae4a7044f9aee"
+  integrity sha512-yLQ2Kuk4S+fPxVncww9kPO72pTiGrZfgyi1P+Vhmy1kR7J1CwzYli8uyhgdTMPaz0h2zqiDF0VGtzX+FTrwbig==
 
 vue-loader@15.7.0:
   version "15.7.0"
