@@ -23,7 +23,7 @@
 		"format": "gulp format"
 	},
 	"resolutions": {
-		"apexcharts": "3.6.2",
+		"apexcharts": "3.6.7",
 		"ts-node": "8.0.1"
 	},
 	"dependencies": {
@@ -109,7 +109,7 @@
 		"@types/ws": "6.0.1",
 		"@typescript-eslint/parser": "1.5.0",
 		"animejs": "3.0.1",
-		"apexcharts": "3.6.2",
+		"apexcharts": "3.6.7",
 		"async": "2.6.2",
 		"autobind-decorator": "2.4.0",
 		"autosize": "4.0.2",

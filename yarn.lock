@@ -1319,10 +1319,10 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-apexcharts@3.6.2:
-  version "3.6.2"
-  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.6.2.tgz#4142ade91850fefb768d91b8a76be929163c12f1"
-  integrity sha512-S7unIMIoUqfIXlX0XleVe+Rp+gbvHbe7nYvv0E+ggl+dp9C8mPJuz0z45rPNYwR8/u0TWfDcF5kMhMmzybESUA==
+apexcharts@3.6.7:
+  version "3.6.7"
+  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.6.7.tgz#fa011ce1a12707edf6634f1351bd88752a84e08e"
+  integrity sha512-0DDBEqZSN/CucRMT8rl26BSvAeiQ7Aw0qP4/n0riKUBWU0sjhf3IT+mcHGl2oSpi61wT2YBR4Iww6v0QW9YRiQ==
   dependencies:
     promise-polyfill "8.1.0"
     svg.draggable.js "^2.2.1"
@@ -11437,13 +11437,6 @@ web-push@3.3.3:
     minimist "^1.2.0"
     urlsafe-base64 "^1.0.0"
 
-webfinger.js@2.7.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/webfinger.js/-/webfinger.js-2.7.0.tgz#403354a14a65aeeba64c1408c18a387487cea106"
-  integrity sha512-l+UtsuV4zrBKyVAj9VCtwWgscTgadCsdGgL1OvbV102cvydWwJCGXlFIXauzWLzfheIDHfPNRWfgMuwyC6ZfIA==
-  dependencies:
-    xhr2 "^0.1.4"
-
 webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
@@ -11656,11 +11649,6 @@ xev@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/xev/-/xev-2.0.1.tgz#24484173a22115bc8a990ef5d4d5129695b827a7"
   integrity sha512-icDf9M67bDge0F2qf02WKZq+s7mMO/SbPv67ZQPym6JThLEOdlWWLdB7VTVgRJp3ekgaiVItCAyH6aoKCPvfIA==
-
-xhr2@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/xhr2/-/xhr2-0.1.4.tgz#7f87658847716db5026323812f818cadab387a5f"
-  integrity sha1-f4dliEdxbbUCYyOBL4GMras4el8=
 
 xml-name-validator@^3.0.0:
   version "3.0.0"
