@@ -108,7 +108,7 @@
 		"@types/webpack-stream": "3.2.10",
 		"@types/websocket": "0.0.40",
 		"@types/ws": "6.0.1",
-		"@typescript-eslint/parser": "1.5.0",
+		"@typescript-eslint/parser": "1.7.0",
 		"animejs": "3.0.1",
 		"apexcharts": "3.6.2",
 		"async": "2.6.2",
