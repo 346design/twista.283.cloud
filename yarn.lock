@@ -3476,10 +3476,10 @@ dir-glob@2.0.0:
     arrify "^1.0.1"
     path-type "^3.0.0"
 
-diskusage@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/diskusage/-/diskusage-1.0.0.tgz#20209c5c5c8f523d4890584059056922969ff561"
-  integrity sha512-eOrPVSZLxo8kXz03GA+gdKauSSmicNET/pXMZKXs1vkdZrEayeZmJYu1Eo2uzVhkQL748vq1irIi7hzoPWBRmQ==
+diskusage@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/diskusage/-/diskusage-1.1.0.tgz#d8f3df103032ca7439131b750f39a4a7e99018ec"
+  integrity sha512-T40n67o0HfQlf+wFOUq+lTqIDGaGasgwieN3FkYJ1H1Ur/YBUej0Mc4T+5aUG3kGJW8s1ir8wmGhq0OjpYqceQ==
   dependencies:
     es6-promise "^4.2.5"
     nan "^2.11.1"
