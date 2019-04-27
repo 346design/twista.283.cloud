@@ -244,7 +244,7 @@
 		"tmp": "0.1.0",
 		"ts-loader": "5.3.3",
 		"ts-node": "8.0.3",
-		"tslint": "5.14.0",
+		"tslint": "5.16.0",
 		"tslint-sonarts": "1.9.0",
 		"twit": "2.2.11",
 		"typescript": "3.4.1",
