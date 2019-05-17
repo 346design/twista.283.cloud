@@ -98,7 +98,7 @@
 		"@types/speakeasy": "2.0.4",
 		"@types/systeminformation": "3.23.1",
 		"@types/through2": "2.0.34",
-		"@types/tinycolor2": "1.4.1",
+		"@types/tinycolor2": "1.4.2",
 		"@types/tmp": "0.1.0",
 		"@types/twit": "2.2.21",
 		"@types/uglify-es": "3.0.0",
