@@ -111,7 +111,7 @@
 		"@typescript-eslint/parser": "1.9.0",
 		"animejs": "3.0.1",
 		"apexcharts": "3.7.0",
-		"async": "2.6.2",
+		"async": "3.0.0",
 		"autobind-decorator": "2.4.0",
 		"autosize": "4.0.2",
 		"autwh": "0.1.0",
