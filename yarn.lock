@@ -11405,10 +11405,10 @@ vue-content-loading@1.6.0:
   dependencies:
     vue "^2.5.13"
 
-vue-cropperjs@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/vue-cropperjs/-/vue-cropperjs-3.0.0.tgz#b3456009a72014ae98bd374a1d812a5c1f5ff46f"
-  integrity sha512-vNdtSLjjcvbMVHqD/JapGKIsP0C+hgyxCiqEDGaxwnSWkj6nQGD2vcXx67Qk8JQfz6Hx/1UVh9jzpyZAeKRU8Q==
+vue-cropperjs@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/vue-cropperjs/-/vue-cropperjs-4.0.0.tgz#931431ff8c81eb50f787acaa527bce14100b5fba"
+  integrity sha512-9x9HFUN2RPpz+AJ9bvnvbtAytW5Q9WeZcMgXqvaRutaCFNGA29rKkKWpUPRy+gn/rFJ5ZpcC1qZO9Hrd3WeqZA==
   dependencies:
     cropperjs "^1.1.3"
 
