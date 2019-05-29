@@ -860,10 +860,10 @@
   resolved "https://registry.yarnpkg.com/@types/tough-cookie/-/tough-cookie-2.3.5.tgz#9da44ed75571999b65c37b60c9b2b88db54c585d"
   integrity sha512-SCcK7mvGi3+ZNz833RRjFIxrn4gI1PPR3NtuIS+6vMkvmsGjosqTJwRt5bAEFLRz+wtJMWv8+uOnZf2hi2QXTg==
 
-"@types/twit@2.2.21":
-  version "2.2.21"
-  resolved "https://registry.yarnpkg.com/@types/twit/-/twit-2.2.21.tgz#cc8a61cccbec17b4c44bafcb305b6efc20aa8c59"
-  integrity sha512-z69mjS3H4ANRhWZ6LrsGUyp4cSer017Q9C1/jEp3rAIisIvYvYOySA6f3rMXIy9w5+T0Y8dsQ7sJfj5lep3ZLA==
+"@types/twit@2.2.22":
+  version "2.2.22"
+  resolved "https://registry.yarnpkg.com/@types/twit/-/twit-2.2.22.tgz#4890d2dc45a60fc8d808ff0e8b5f681ed86eeb72"
+  integrity sha512-hf5piOrX3CBTD/XL4VQY0lYLW55sB0GNuMyh7V5XaAu8kgqkCeS4ycajypYfxadAk6CxDKGnbLAudMG+qA49Ng==
   dependencies:
     "@types/geojson" "*"
     "@types/node" "*"
