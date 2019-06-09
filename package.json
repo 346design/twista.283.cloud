@@ -139,7 +139,7 @@
 		"del": "4.1.1",
 		"diskusage": "1.1.1",
 		"double-ended-queue": "2.1.0-0",
-		"elasticsearch": "16.0.0",
+		"elasticsearch": "16.1.1",
 		"emojilib": "2.4.0",
 		"errs": "0.3.2",
 		"escape-regexp": "0.0.1",
