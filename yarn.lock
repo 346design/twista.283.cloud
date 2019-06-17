@@ -3556,13 +3556,13 @@ dir-glob@2.0.0:
     arrify "^1.0.1"
     path-type "^3.0.0"
 
-diskusage@1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/diskusage/-/diskusage-1.1.1.tgz#bd47ba4bfa401f0d6b81fa492223b447231da0e5"
-  integrity sha512-YI5PJXdZEe1QfVGx+n0IFbxXYj2cwV/PrQKZKvBKjA///EHNoeM1dJafBYPsfAn9yrb+BDhHSoZ1FDrgs1kqaQ==
+diskusage@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/diskusage/-/diskusage-1.1.2.tgz#e1c591ae617513fef81d620f458f167b9e5e91e6"
+  integrity sha512-w/4Yz8aPPCBEDUfv3pnEnL5iV9soeRg5yJ7udJIEcpku/ZqZjW3qbwykTf8EmfjkSZF/wphlsHsqYeOBgi/rhg==
   dependencies:
     es6-promise "^4.2.5"
-    nan "^2.11.1"
+    nan "^2.13.2"
 
 doctrine@^3.0.0:
   version "3.0.0"
@@ -7410,7 +7410,7 @@ mz@^2.4.0, mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@2.14.0, nan@^2.11.0, nan@^2.11.1, nan@^2.12.1, nan@^2.13.2:
+nan@2.14.0, nan@^2.11.0, nan@^2.12.1, nan@^2.13.2:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
