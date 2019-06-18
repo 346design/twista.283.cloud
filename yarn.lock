@@ -10422,10 +10422,10 @@ stylus@0.54.5:
     sax "0.5.x"
     source-map "0.1.x"
 
-summaly@2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/summaly/-/summaly-2.2.0.tgz#34b2f562204a9c77c61d3b9c024dbc4233b37ecc"
-  integrity sha512-YWlX1KrlEEnJgWWGHHa1ixgYBKXPSvnpVh67n8OarpHcO0IPCW8USv21ZGJBbxagOPGFsxXdbXeTVCCeThTG6g==
+summaly@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/summaly/-/summaly-2.3.0.tgz#897ebd8192fad0c76bf2e9de1da645525b008d03"
+  integrity sha512-cmW8kSKR/7g0z7dJAtJ8uMpyG4MfUZnI/C2+9ixDycz8m+mpfRtOkh2YtmRh8jkkKHz//j+sBwXyWpSFHhZh+Q==
   dependencies:
     cheerio-httpcli "0.7.3"
     debug "3.1.0"
