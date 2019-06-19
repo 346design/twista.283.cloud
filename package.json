@@ -50,7 +50,7 @@
 		"@types/deep-equal": "1.0.1",
 		"@types/double-ended-queue": "2.1.0",
 		"@types/elasticsearch": "5.0.34",
-		"@types/fluent-ffmpeg": "2.1.9",
+		"@types/fluent-ffmpeg": "2.1.10",
 		"@types/gulp": "4.0.6",
 		"@types/gulp-imagemin": "4.1.1",
 		"@types/gulp-mocha": "0.0.32",
