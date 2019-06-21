@@ -247,7 +247,7 @@
 		"textarea-caret": "3.1.0",
 		"tinycolor2": "1.4.1",
 		"tmp": "0.1.0",
-		"ts-loader": "6.0.2",
+		"ts-loader": "6.0.4",
 		"ts-node": "8.0.1",
 		"tslint": "5.17.0",
 		"tslint-sonarts": "1.9.0",
