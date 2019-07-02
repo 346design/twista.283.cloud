@@ -10603,10 +10603,10 @@ symbol-tree@^3.2.2:
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.2.tgz#ae27db38f660a7ae2e1c3b7d1bc290819b8519e6"
   integrity sha1-rifbOPZgp64uHDt9G8KQgZuFGeY=
 
-systeminformation@4.12.2:
-  version "4.12.2"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-4.12.2.tgz#3aa3e184efc76b10df9e26ef1c53fc892813f315"
-  integrity sha512-cF8M9bmdecZPn1NI/gGZvJO466YZceowIHtyi0zdRJcVtO+MLyuuj16SOUVm45T6FP0O/f9+9RMgvOrkNeBYpw==
+systeminformation@4.13.2:
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-4.13.2.tgz#487b58dc7a0827f65d7408aafc2319e2c8fa0f58"
+  integrity sha512-dWlqS0s4tvJAL9QClZJi/oPfqyXFYupnG7FeSsoRI3St0Vf6qHFn7Hh9++7p/Owa3tQlU0hucGU/WReC2iAwkg==
 
 syuilo-password-strength@0.0.1:
   version "0.0.1"
