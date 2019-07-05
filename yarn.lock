@@ -270,10 +270,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/bull@3.5.14":
-  version "3.5.14"
-  resolved "https://registry.yarnpkg.com/@types/bull/-/bull-3.5.14.tgz#a5f355d5a0e168a3661765b88dd0500232073802"
-  integrity sha512-dKyYNH+cHD79FpH++lUO0Chs6+5uD2FqB2TaBDhme/EZ1RDtP2NEkWmbeqJPILJ8HZvVU4F9L2USMY8E7lOgGQ==
+"@types/bull@3.5.15":
+  version "3.5.15"
+  resolved "https://registry.yarnpkg.com/@types/bull/-/bull-3.5.15.tgz#f1a33a4ea0226c16392436646347047983c1566e"
+  integrity sha512-x9BF8qJVjWRPSZZKTTmrdMiGvRCdXsP+4NeClEXrT65dQSxZrkOatipxN5HcXG9bn3dFynvkH8PcP2yNSlvX2w==
   dependencies:
     "@types/ioredis" "*"
 
