@@ -723,12 +723,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*":
-  version "12.0.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.3.tgz#5d8d24e0033fc6393efadc85cb59c1f638095c9a"
-  integrity sha512-zkOxCS/fA+3SsdA+9Yun0iANxzhQRiNwTvJSr6N95JhuJ/x27z9G2URx1Jpt3zYFfCGUXZGL5UDxt5eyLE7wgw==
-
-"@types/node@12.0.10":
+"@types/node@*", "@types/node@12.0.10":
   version "12.0.10"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.10.tgz#51babf9c7deadd5343620055fc8aff7995c8b031"
   integrity sha512-LcsGbPomWsad6wmMNv7nBLw7YYYyfdYcz6xryKYQhx89c3XXan+8Q6AJ43G5XDIaklaVkK3mE4fCb0SBvMiPSQ==
@@ -767,10 +762,10 @@
   resolved "https://registry.yarnpkg.com/@types/parsimmon/-/parsimmon-1.10.0.tgz#ffb81cb023ff435a41d4710a29ab23c561dc9fdf"
   integrity sha512-bsTIJFVQv7jnvNiC42ld2pQW2KRI+pAG243L+iATvqzy3X6+NH1obz2itRKDZZ8VVhN3wjwYax/VBGCcXzgTqQ==
 
-"@types/pkgcloud@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@types/pkgcloud/-/pkgcloud-1.7.1.tgz#94e370034a532fb0fa4c27feea154ead7fdcb5ac"
-  integrity sha512-r9ZMuxLBxPvBikO/CaWlfwymxxgbWGdRml3C2RLNwoorPHiiClgLN8aEumTrpe6NgDW3KVV0YItdtxEkshc+hg==
+"@types/pkgcloud@1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@types/pkgcloud/-/pkgcloud-1.7.2.tgz#de83a73c06d27cc783825c6dfbb61cfbf45becea"
+  integrity sha512-alK7YzUDONtZIiFDbKCk+vN1GKGn52Ooa8cMwWGhu3BY6rjPB3b7VmJlwzFQVNMMe/4QTLJ08G4yHM4nfeJ9nQ==
   dependencies:
     "@types/node" "*"
 
