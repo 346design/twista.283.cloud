@@ -81,7 +81,7 @@
 		"@types/mkdirp": "0.5.2",
 		"@types/mocha": "5.2.7",
 		"@types/mongodb": "3.1.28",
-		"@types/node": "12.6.2",
+		"@types/node": "12.6.8",
 		"@types/node-schedule": "1.2.3",
 		"@types/nodemailer": "6.2.0",
 		"@types/nprogress": "0.2.0",
