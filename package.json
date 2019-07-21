@@ -200,7 +200,7 @@
 		"monk": "^7.0.0",
 		"ms": "^2.1.2",
 		"nan": "^2.14.0",
-		"nested-property": "^0.0.7",
+		"nested-property": "^1.0.1",
 		"node-schedule": "^1.3.2",
 		"nodemailer": "^6.3.0",
 		"nodemailer-smime": "^1.1.0",
