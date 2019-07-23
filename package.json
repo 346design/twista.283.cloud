@@ -123,7 +123,7 @@
 		"autosize": "^4.0.2",
 		"autwh": "^0.1.0",
 		"bcryptjs": "^2.4.3",
-		"bootstrap-vue": "^2.0.0-rc.26",
+		"bootstrap-vue": "^2.0.0-rc.27",
 		"bull": "^3.10.0",
 		"cafy": "^15.1.1",
 		"canvas-confetti": "^0.3.0",
