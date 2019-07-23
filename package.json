@@ -80,7 +80,7 @@
 		"@types/minio": "^7.0.2",
 		"@types/mkdirp": "^0.5.2",
 		"@types/mocha": "^5.2.7",
-		"@types/mongodb": "^3.1.29",
+		"@types/mongodb": "^3.1.30",
 		"@types/node": "^12.6.8",
 		"@types/node-schedule": "^1.2.3",
 		"@types/nodemailer": "^6.2.1",

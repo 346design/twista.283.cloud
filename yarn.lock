@@ -706,10 +706,10 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.7.tgz#315d570ccb56c53452ff8638738df60726d5b6ea"
   integrity sha512-NYrtPht0wGzhwe9+/idPaBB+TqkY9AhTvOLMkThm0IoEfLaiVQZwBwyJ5puCkO3AUCWrmcoePjp2mbFocKy4SQ==
 
-"@types/mongodb@^3.1.29":
-  version "3.1.29"
-  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.1.29.tgz#28b119b2f983dc35da4fe9883c9934cc04121f65"
-  integrity sha512-X74BBsFQruQXVJif2oJ08uceUfAVSkb2gl6Zm07fgqKQHnTdxIW3vknHNpQahogezX42EPQv9A+dYG0+CFY8aA==
+"@types/mongodb@^3.1.30":
+  version "3.1.30"
+  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.1.30.tgz#2c208b1d7348961cdbe66366f371bf97d3f33c3f"
+  integrity sha512-o8NLZRp+zEILEMj628cCTT2bSWH/Zst+vjSNgaSoKwGeHqJXiGPBSHb0RuidPrllBEyQ+uSW/qNPv0b5mzh+SA==
   dependencies:
     "@types/bson" "*"
     "@types/node" "*"
@@ -721,12 +721,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*":
-  version "12.6.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.2.tgz#a5ccec6abb6060d5f20d256fb03ed743e9774999"
-  integrity sha512-gojym4tX0FWeV2gsW4Xmzo5wxGjXGm550oVUII7f7G5o4BV6c7DBdiG1RRQd+y1bvqRyYtPfMK85UM95vsapqQ==
-
-"@types/node@^12.6.8":
+"@types/node@*", "@types/node@^12.6.8":
   version "12.6.8"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.8.tgz#e469b4bf9d1c9832aee4907ba8a051494357c12c"
   integrity sha512-aX+gFgA5GHcDi89KG5keey2zf0WfZk/HAQotEamsK2kbey+8yGKcson0hbK8E+v0NArlCJQCqMP161YhV6ZXLg==
