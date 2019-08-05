@@ -1488,10 +1488,10 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-apexcharts@^3.8.3:
-  version "3.8.3"
-  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.8.3.tgz#ad9dafa1404b2dbcb1052f924da7fa5b8fb02cdf"
-  integrity sha512-PybD3+7kMBW9tpc93O5kN4uCwl1x1ic87Nh+C/NLLHS+iqsYV/K9MM8jpEFlqsVKjkpa7MiIANCXAyp9iFMDKA==
+apexcharts@^3.8.4:
+  version "3.8.4"
+  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-3.8.4.tgz#8fad5f6303786d91a1b0e6e57ab453f1e86794ce"
+  integrity sha512-I3eE5rHv4BK8w+PeK0Rx4hpVQXtjsaPImlD5Da4QVlta11yaQ2f3kmgAFDn3KBzY/qd1wqHCi6REBGFvpoIbzA==
   dependencies:
     promise-polyfill "8.1.0"
     svg.draggable.js "^2.2.2"
@@ -1801,10 +1801,10 @@ autwh@^0.1.0:
   dependencies:
     oauth "0.9.15"
 
-aws-sdk@2.503.0:
-  version "2.503.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.503.0.tgz#983b8c03aa919060a81127cb9d94fbb1667f4cf2"
-  integrity sha512-DPwRxhPYCGNvKL9rUhpAoOVpMRyISbVMlXykLQknYo7wyOI+jYcyA7t8H7IFPAqj4ZG+R+Au9tO/KT4im+2gbg==
+aws-sdk@^2.503.0:
+  version "2.504.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.504.0.tgz#d7111b3f5117548935d68c717d72bbf57a9362f9"
+  integrity sha512-azOX54oovJv0zWzO23fBgIprwsvx8KUuMR+cAUAOx23D8LJ5S+sl3UYS9Q1X4qF/blBTa4+ZNawZDV0N1HiQmw==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
