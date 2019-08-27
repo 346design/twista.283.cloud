@@ -2415,10 +2415,10 @@ caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000971:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000971.tgz#d1000e4546486a6977756547352bc96a4cfd2b13"
   integrity sha512-TQFYFhRS0O5rdsmSbF1Wn+16latXYsQJat66f7S7lizXW1PVpWJeZw9wqqVLIjuxDRz7s7xRUj13QCfd8hKn6g==
 
-canvas-confetti@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/canvas-confetti/-/canvas-confetti-0.3.0.tgz#8801b69b623befbbb066186f64114de7bce274bf"
-  integrity sha512-WgLw9BTlSpUriZRmgT7QdcPWikmFQEN5GcHQ470wcH2V6t81E2HzX2fMwGK9dS4qeACYp1+4TQmS817O8n2h7w==
+canvas-confetti@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/canvas-confetti/-/canvas-confetti-0.4.0.tgz#a91601dc06fe68de020d5ab87609c5955ca521ff"
+  integrity sha512-qbIV0tgr7n29MYI3fcPtCkxRdMIlw5mIgvRY7wCTjnTh769DIuaaQn0H6yNRc/MNUIHf4AgGkkwxelQvbsawrw==
 
 capture-stack-trace@^1.0.0:
   version "1.0.1"
