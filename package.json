@@ -265,7 +265,7 @@
 		"typescript": "^3.8.0-dev.20200205",
 		"uglify-es": "^3.3.9",
 		"url-join": "^4.0.1",
-		"url-loader": "^2.1.0",
+		"url-loader": "^4.0.0",
 		"uuid": "^3.3.3",
 		"v-animate-css": "^0.0.3",
 		"v-debounce": "^0.1.2",
