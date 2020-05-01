@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.5
+version: v1.14.1
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -105,3 +105,114 @@ patch:
         patched: '2019-10-04T05:27:00.198Z'
     - pkgcloud > snyk > proxy-agent > pac-proxy-agent > https-proxy-agent:
         patched: '2019-10-04T05:27:00.198Z'
+  SNYK-JS-LODASH-567746:
+    - lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - bull > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - elasticsearch > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - eslint > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - hard-source-webpack-plugin > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - lookup-dns-cache > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - minio > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - video-thumbnail-generator > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - eslint > inquirer > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > inquirer > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - eslint > table > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - eslint-plugin-vue > vue-eslint-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - lookup-dns-cache > async > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - mocha > yargs-unparser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > async > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - portscanner > async > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-config > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - request-promise-native > request-promise-core > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-mvn-plugin > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-nodejs-lockfile-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-nuget-plugin > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > inquirer > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - summaly > request-promise-native > request-promise-core > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - summaly > cheerio-httpcli > async > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-go-plugin > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-nodejs-lockfile-parser > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-config > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-mvn-plugin > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-nodejs-lockfile-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-nuget-plugin > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-php-plugin > @snyk/composer-lockfile-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > snyk-nuget-plugin > dotnet-deps-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-go-plugin > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-nodejs-lockfile-parser > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/ruby-semver > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-nuget-plugin > dotnet-deps-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > snyk-php-plugin > @snyk/composer-lockfile-parser > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pug > pug-code-gen > constantinople > babel-types > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pug > pug-filters > constantinople > babel-types > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/ruby-semver > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pug > pug-code-gen > pug-attrs > constantinople > babel-types > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
+    - pkgcloud > snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-01T05:27:35.775Z'
