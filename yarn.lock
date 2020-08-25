@@ -4722,10 +4722,10 @@ eventemitter2@^5.0.1:
   resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-5.0.1.tgz#6197a095d5fb6b57e8942f6fd7eaad63a09c9452"
   integrity sha1-YZegldX7a1folC9v1+qtY6CclFI=
 
-eventemitter3@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.2.tgz#2d3d48f9c346698fce83a85d7d664e98535df6e7"
-  integrity sha512-tvtQIeLVHjDkJYnzf2dgVMxfuSGJeM/7UCG17TT4EumTfNtF+0nebF/4zWOIkCreAbtNqhGEboB6BWrwqNaw4Q==
+eventemitter3@^4.0.5:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.5.tgz#51d81e4f1ccc8311a04f0c20121ea824377ea6d9"
+  integrity sha512-QR0rh0YiPuxuDQ6+T9GAO/xWTExXpxIes1Nl9RykNGTnE1HJmkuEfxJH9cubjIOQZ/GH4qNBR4u8VSHaKiWs4g==
 
 events@1.1.1:
   version "1.1.1"

@@ -152,7 +152,7 @@
 		"escape-regexp": "^0.0.1",
 		"eslint": "^5.16.0",
 		"eslint-plugin-vue": "^5.2.3",
-		"eventemitter3": "^3.1.2",
+		"eventemitter3": "^4.0.5",
 		"feed": "^3.0.0",
 		"file-type": "^12.4.0",
 		"filed": "^0.2.1",
