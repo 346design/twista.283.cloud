@@ -252,7 +252,7 @@
 		"summaly": "^2.3.1",
 		"systeminformation": "^4.16.0",
 		"syuilo-password-strength": "^0.0.1",
-		"terser-webpack-plugin": "^1.4.2",
+		"terser-webpack-plugin": "^2.3.6",
 		"textarea-caret": "^3.1.0",
 		"tinycolor2": "^1.4.1",
 		"tmp": "^0.1.0",
