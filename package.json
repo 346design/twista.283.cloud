@@ -192,7 +192,7 @@
 		"koa-slow": "^2.1.0",
 		"koa-views": "^6.2.1",
 		"loader-utils": "^1.2.3",
-		"lodash": "^4.17.15",
+		"lodash": "^4.17.21",
 		"lookup-dns-cache": "^2.1.0",
 		"mime": "^2.4.4",
 		"minio": "^7.0.12",
