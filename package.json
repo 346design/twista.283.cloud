@@ -215,7 +215,7 @@
 		"parsimmon": "^1.13.0",
 		"pkgcloud": "./lib/pkgcloud",
 		"portscanner": "^2.2.0",
-		"postcss": "^7.0.24",
+		"postcss": "^8.2.10",
 		"postcss-loader": "^3.0.0",
 		"prismjs": "^1.17.1",
 		"progress-bar-webpack-plugin": "^1.12.1",
