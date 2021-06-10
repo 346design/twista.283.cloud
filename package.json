@@ -120,7 +120,7 @@
 		"@types/ws": "^6.0.4",
 		"@typescript-eslint/parser": "^1.13.0",
 		"animejs": "^3.1.0",
-		"apexcharts": "^3.15.3",
+		"apexcharts": "^3.27.0",
 		"async": "^3.1.0",
 		"autobind-decorator": "^2.4.0",
 		"autosize": "^4.0.2",
