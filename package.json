@@ -139,7 +139,7 @@
 		"content-disposition": "^0.5.3",
 		"crc-32": "^1.2.0",
 		"css-loader": "^3.3.0",
-		"cssnano": "^4.1.10",
+		"cssnano": "^5.0.0",
 		"dateformat": "^3.0.3",
 		"deep-equal": "^1.1.1",
 		"deepcopy": "^0.6.3",
