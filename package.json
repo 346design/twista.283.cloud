@@ -150,7 +150,7 @@
 		"emojilib": "^2.4.0",
 		"errs": "^0.3.2",
 		"escape-regexp": "^0.0.1",
-		"eslint": "^5.16.0",
+		"eslint": "^7.31.0",
 		"eslint-plugin-vue": "^5.2.3",
 		"eventemitter3": "^3.1.2",
 		"feed": "^3.0.0",
