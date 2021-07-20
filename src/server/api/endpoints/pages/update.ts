@@ -3,16 +3,13 @@ import * as ms from 'ms';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { Pages, DriveFiles } from '../../../../models';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
+import { Not } from 'typeorm';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定したページの情報を更新します。',
-	},
-
 	tags: ['pages'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:pages',
 
@@ -24,10 +21,6 @@ export const meta = {
 	params: {
 		pageId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象のページのID',
-				'en-US': 'Target page ID.'
-			}
 		},
 
 		title: {
@@ -35,7 +28,7 @@ export const meta = {
 		},
 
 		name: {
-			validator: $.optional.str,
+			validator: $.str.min(1),
 		},
 
 		summary: {
@@ -50,6 +43,10 @@ export const meta = {
 			validator: $.arr($.obj())
 		},
 
+		script: {
+			validator: $.str,
+		},
+
 		eyeCatchingImageId: {
 			validator: $.optional.nullable.type(ID),
 		},
@@ -59,6 +56,10 @@ export const meta = {
 		},
 
 		alignCenter: {
+			validator: $.optional.bool,
+		},
+
+		hideTitleWhenPinned: {
 			validator: $.optional.bool,
 		},
 	},
@@ -81,6 +82,11 @@ export const meta = {
 			code: 'NO_SUCH_FILE',
 			id: 'cfc23c7c-3887-490e-af30-0ed576703c82'
 		},
+		nameAlreadyExists: {
+			message: 'Specified name already exists.',
+			code: 'NAME_ALREADY_EXISTS',
+			id: '2298a392-d4a1-44c5-9ebb-ac1aeaa5a9ab'
+		}
 	}
 };
 
@@ -105,6 +111,16 @@ export default define(meta, async (ps, user) => {
 		}
 	}
 
+	await Pages.find({
+		id: Not(ps.pageId),
+		userId: user.id,
+		name: ps.name
+	}).then(result => {
+		if (result.length > 0) {
+			throw new ApiError(meta.errors.nameAlreadyExists);
+		}
+	});
+
 	await Pages.update(page.id, {
 		updatedAt: new Date(),
 		title: ps.title,
@@ -112,7 +128,9 @@ export default define(meta, async (ps, user) => {
 		summary: ps.name === undefined ? page.summary : ps.summary,
 		content: ps.content,
 		variables: ps.variables,
+		script: ps.script,
 		alignCenter: ps.alignCenter === undefined ? page.alignCenter : ps.alignCenter,
+		hideTitleWhenPinned: ps.hideTitleWhenPinned === undefined ? page.hideTitleWhenPinned : ps.hideTitleWhenPinned,
 		font: ps.font === undefined ? page.font : ps.font,
 		eyeCatchingImageId: ps.eyeCatchingImageId === null
 			? null

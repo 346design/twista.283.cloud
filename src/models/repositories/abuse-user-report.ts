@@ -1,7 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Users } from '..';
 import { AbuseUserReport } from '../entities/abuse-user-report';
-import { ensure } from '../../prelude/ensure';
 import { awaitAll } from '../../prelude/await-all';
 
 @EntityRepository(AbuseUserReport)
@@ -9,19 +8,25 @@ export class AbuseUserReportRepository extends Repository<AbuseUserReport> {
 	public async pack(
 		src: AbuseUserReport['id'] | AbuseUserReport,
 	) {
-		const report = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const report = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		return await awaitAll({
 			id: report.id,
 			createdAt: report.createdAt,
+			comment: report.comment,
+			resolved: report.resolved,
 			reporterId: report.reporterId,
-			userId: report.userId,
+			targetUserId: report.targetUserId,
+			assigneeId: report.assigneeId,
 			reporter: Users.pack(report.reporter || report.reporterId, null, {
 				detail: true
 			}),
-			user: Users.pack(report.user || report.userId, null, {
+			targetUser: Users.pack(report.targetUser || report.targetUserId, null, {
 				detail: true
 			}),
+			assignee: report.assigneeId ? Users.pack(report.assignee || report.assigneeId, null, {
+				detail: true
+			}) : null,
 		});
 	}
 

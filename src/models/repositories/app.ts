@@ -1,8 +1,7 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { App } from '../entities/app';
 import { AccessTokens } from '..';
-import { ensure } from '../../prelude/ensure';
-import { types, bool, SchemaType } from '../../misc/schema';
+import { SchemaType } from '@/misc/schema';
 
 export type PackedApp = SchemaType<typeof packedAppSchema>;
 
@@ -10,7 +9,7 @@ export type PackedApp = SchemaType<typeof packedAppSchema>;
 export class AppRepository extends Repository<App> {
 	public async pack(
 		src: App['id'] | App,
-		me?: any,
+		me?: { id: User['id'] } | null | undefined,
 		options?: {
 			detail?: boolean,
 			includeSecret?: boolean,
@@ -23,7 +22,7 @@ export class AppRepository extends Repository<App> {
 			includeProfileImageIds: false
 		}, options);
 
-		const app = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const app = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		return {
 			id: app.id,
@@ -42,38 +41,40 @@ export class AppRepository extends Repository<App> {
 }
 
 export const packedAppSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
-			format: 'id',
-			description: 'The unique identifier for this Note.',
-			example: 'xxxxxxxxxx',
+			type: 'string' as const,
+			optional: false as const, nullable: false as const
 		},
 		name: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
-			description: 'アプリケーションの名前'
+			type: 'string' as const,
+			optional: false as const, nullable: false as const
 		},
-		callbackUrl: {
-			type: types.string,
-			optional: bool.false, nullable: bool.true,
-			description: 'コールバックするURL'
+		createdAt: {
+			type: 'string' as const,
+			optional: false as const, nullable: false as const
+		},
+		lastUsedAt: {
+			type: 'string' as const,
+			optional: false as const, nullable: false as const
 		},
 		permission: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: false as const, nullable: false as const,
 			items: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
+				type: 'string' as const,
+				optional: false as const, nullable: false as const
 			}
 		},
 		secret: {
-			type: types.string,
-			optional: bool.true, nullable: bool.false,
-			description: 'アプリケーションのシークレットキー'
+			type: 'string' as const,
+			optional: true as const, nullable: false as const
+		},
+		isAuthorized: {
+			type: 'boolean' as const,
+			optional: true as const, nullable: false as const
 		}
-	},
+	}
 };

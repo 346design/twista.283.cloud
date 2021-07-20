@@ -8,6 +8,9 @@
 # Final accessible URL seen by a user.
 url: https://example.tld/
 
+# ONCE YOU HAVE STARTED THE INSTANCE, DO NOT CHANGE THE
+# URL SETTINGS AFTER THAT!
+
 #   ┌───────────────────────┐
 #───┘ Port and TLS settings └───────────────────────────────────
 
@@ -62,6 +65,9 @@ db:
   user: example-misskey-user
   pass: example-misskey-pass
 
+  # Whether disable Caching queries
+  #disableCache: true
+
   # Extra Connection options
   #extra:
   #  ssl: true
@@ -73,6 +79,8 @@ redis:
   host: localhost
   port: 6379
   #pass: example-pass
+  #prefix: example-prefix
+  #db: 1
 
 #   ┌─────────────────────────────┐
 #───┘ Elasticsearch configuration └─────────────────────────────
@@ -80,7 +88,9 @@ redis:
 #elasticsearch:
 #  host: localhost
 #  port: 9200
-#  pass: null
+#  ssl: false
+#  user: 
+#  pass: 
 
 #   ┌───────────────┐
 #───┘ ID generation └───────────────────────────────────────────
@@ -103,15 +113,47 @@ id: 'aid'
 #   ┌─────────────────────┐
 #───┘ Other configuration └─────────────────────────────────────
 
-# If enabled:
-#  The first account created is automatically marked as Admin.
-autoAdmin: true
-
 # Whether disable HSTS
 #disableHsts: true
 
-# Clustering
+# Number of worker processes
 #clusterLimit: 1
+
+# Job concurrency per worker
+# deliverJobConcurrency: 128
+# inboxJobConcurrency: 16
+
+# Job rate limiter
+# deliverJobPerSec: 128
+# inboxJobPerSec: 16
+
+# Job attempts
+# deliverJobMaxAttempts: 12
+# inboxJobMaxAttempts: 8
 
 # IP address family used for outgoing request (ipv4, ipv6 or dual)
 #outgoingAddressFamily: ipv4
+
+# Syslog option
+#syslog:
+#  host: localhost
+#  port: 514
+
+# Proxy for HTTP/HTTPS
+#proxy: http://127.0.0.1:3128
+
+#proxyBypassHosts: [
+#  'example.com',
+#  '192.0.2.8'
+#]
+
+# Proxy for SMTP/SMTPS
+#proxySmtp: http://127.0.0.1:3128   # use HTTP/1.1 CONNECT
+#proxySmtp: socks4://127.0.0.1:1080 # use SOCKS4
+#proxySmtp: socks5://127.0.0.1:1080 # use SOCKS5
+
+# Media Proxy
+#mediaProxy: https://example.com/proxy
+
+# Sign to ActivityPub GET request (default: false)
+#signToActivityPubGet: true

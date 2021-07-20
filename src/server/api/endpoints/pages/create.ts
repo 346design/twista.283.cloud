@@ -1,21 +1,16 @@
 import $ from 'cafy';
 import * as ms from 'ms';
 import define from '../../define';
-import { ID } from '../../../../misc/cafy-id';
-import { types, bool } from '../../../../misc/schema';
+import { ID } from '@/misc/cafy-id';
 import { Pages, DriveFiles } from '../../../../models';
-import { genId } from '../../../../misc/gen-id';
+import { genId } from '@/misc/gen-id';
 import { Page } from '../../../../models/entities/page';
 import { ApiError } from '../../error';
 
 export const meta = {
-	desc: {
-		'ja-JP': 'ページを作成します。',
-	},
-
 	tags: ['pages'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:pages',
 
@@ -30,7 +25,7 @@ export const meta = {
 		},
 
 		name: {
-			validator: $.str,
+			validator: $.str.min(1),
 		},
 
 		summary: {
@@ -43,6 +38,10 @@ export const meta = {
 
 		variables: {
 			validator: $.arr($.obj())
+		},
+
+		script: {
+			validator: $.str,
 		},
 
 		eyeCatchingImageId: {
@@ -58,11 +57,16 @@ export const meta = {
 			validator: $.optional.bool,
 			default: false
 		},
+
+		hideTitleWhenPinned: {
+			validator: $.optional.bool,
+			default: false
+		},
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'Page',
 	},
 
@@ -72,6 +76,11 @@ export const meta = {
 			code: 'NO_SUCH_FILE',
 			id: 'b7b97489-0f66-4b12-a5ff-b21bd63f6e1c'
 		},
+		nameAlreadyExists: {
+			message: 'Specified name already exists.',
+			code: 'NAME_ALREADY_EXISTS',
+			id: '4650348e-301c-499a-83c9-6aa988c66bc1'
+		}
 	}
 };
 
@@ -88,6 +97,15 @@ export default define(meta, async (ps, user) => {
 		}
 	}
 
+	await Pages.find({
+		userId: user.id,
+		name: ps.name
+	}).then(result => {
+		if (result.length > 0) {
+			throw new ApiError(meta.errors.nameAlreadyExists);
+		}
+	});
+
 	const page = await Pages.save(new Page({
 		id: genId(),
 		createdAt: new Date(),
@@ -97,10 +115,12 @@ export default define(meta, async (ps, user) => {
 		summary: ps.summary,
 		content: ps.content,
 		variables: ps.variables,
+		script: ps.script,
 		eyeCatchingImageId: eyeCatchingImage ? eyeCatchingImage.id : null,
 		userId: user.id,
 		visibility: 'public',
 		alignCenter: ps.alignCenter,
+		hideTitleWhenPinned: ps.hideTitleWhenPinned,
 		font: ps.font
 	}));
 

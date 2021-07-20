@@ -6,11 +6,9 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as http2 from 'http2';
 import * as https from 'https';
-import * as zlib from 'zlib';
 import * as Koa from 'koa';
-import * as Router from 'koa-router';
+import * as Router from '@koa/router';
 import * as mount from 'koa-mount';
-import * as compress from 'koa-compress';
 import * as koaLogger from 'koa-logger';
 import * as requestStats from 'request-stats';
 import * as slow from 'koa-slow';
@@ -18,15 +16,16 @@ import * as slow from 'koa-slow';
 import activityPub from './activitypub';
 import nodeinfo from './nodeinfo';
 import wellKnown from './well-known';
-import config from '../config';
+import config from '@/config';
 import apiServer from './api';
 import { sum } from '../prelude/array';
 import Logger from '../services/logger';
 import { program } from '../argv';
-import { UserProfiles } from '../models';
+import { UserProfiles, Users } from '../models';
 import { networkChart } from '../services/chart';
-import { genAvatar } from '../misc/gen-avatar';
-import { createTemp } from '../misc/create-temp';
+import { genAvatar } from '@/misc/gen-avatar';
+import { createTemp } from '@/misc/create-temp';
+import { publishMainStream } from '../services/stream';
 
 export const serverLogger = new Logger('server', 'gray', false);
 
@@ -47,11 +46,6 @@ if (!['production', 'test'].includes(process.env.NODE_ENV || '')) {
 		}));
 	}
 }
-
-// Compress response
-app.use(compress({
-	flush: zlib.constants.Z_SYNC_FLUSH
-}));
 
 // HSTS
 // 6months (15552000sec)
@@ -90,10 +84,15 @@ router.get('/verify-email/:code', async ctx => {
 		ctx.body = 'Verify succeeded!';
 		ctx.status = 200;
 
-		UserProfiles.update({ userId: profile.userId }, {
+		await UserProfiles.update({ userId: profile.userId }, {
 			emailVerified: true,
 			emailVerifyCode: null
 		});
+
+		publishMainStream(profile.userId, 'meUpdated', await Users.pack(profile.userId, { id: profile.userId }, {
+			detail: true,
+			includeSecrets: true
+		}));
 	} else {
 		ctx.status = 404;
 	}
@@ -150,7 +149,7 @@ export default () => new Promise(resolve => {
 
 	// Bulk write
 	setInterval(() => {
-		if (queue.length == 0) return;
+		if (queue.length === 0) return;
 
 		const requests = queue.length;
 		const time = sum(queue.map(x => x.time));

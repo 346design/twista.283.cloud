@@ -1,43 +1,132 @@
 import { publishMainStream } from '../stream';
 import { Note } from '../../models/entities/note';
 import { User } from '../../models/entities/user';
-import { NoteUnreads } from '../../models';
+import { NoteUnreads, AntennaNotes, Users, Followings, ChannelFollowings } from '../../models';
+import { Not, IsNull, In } from 'typeorm';
+import { Channel } from '../../models/entities/channel';
+import { checkHitAntenna } from '@/misc/check-hit-antenna';
+import { getAntennas } from '@/misc/antenna-cache';
+import { PackedNote } from '../../models/repositories/note';
+import { readNotificationByQuery } from '@/server/api/common/read-notification';
 
 /**
- * Mark a note as read
+ * Mark notes as read
  */
-export default (
+export default async function(
 	userId: User['id'],
-	noteId: Note['id']
-) => new Promise<any>(async (resolve, reject) => {
-	// Remove document
-	/*const res = */await NoteUnreads.delete({
-		userId: userId,
-		noteId: noteId
-	});
+	notes: (Note | PackedNote)[],
+	info?: {
+		following: Set<User['id']>;
+		followingChannels: Set<Channel['id']>;
+	}
+) {
+	const following = info?.following ? info.following : new Set<string>((await Followings.find({
+		where: {
+			followerId: userId
+		},
+		select: ['followeeId']
+	})).map(x => x.followeeId));
+	const followingChannels = info?.followingChannels ? info.followingChannels : new Set<string>((await ChannelFollowings.find({
+		where: {
+			followerId: userId
+		},
+		select: ['followeeId']
+	})).map(x => x.followeeId));
 
-	// v11 TODO: https://github.com/typeorm/typeorm/issues/2415
-	//if (res.affected == 0) {
-	//	return;
-	//}
+	const myAntennas = (await getAntennas()).filter(a => a.userId === userId);
+	const readMentions: (Note | PackedNote)[] = [];
+	const readSpecifiedNotes: (Note | PackedNote)[] = [];
+	const readChannelNotes: (Note | PackedNote)[] = [];
+	const readAntennaNotes: (Note | PackedNote)[] = [];
 
-	const count1 = await NoteUnreads.count({
-		userId: userId,
-		isSpecified: false
-	});
+	for (const note of notes) {
+		if (note.mentions && note.mentions.includes(userId)) {
+			readMentions.push(note);
+		} else if (note.visibleUserIds && note.visibleUserIds.includes(userId)) {
+			readSpecifiedNotes.push(note);
+		}
 
-	const count2 = await NoteUnreads.count({
-		userId: userId,
-		isSpecified: true
-	});
+		if (note.channelId && followingChannels.has(note.channelId)) {
+			readChannelNotes.push(note);
+		}
 
-	if (count1 == 0) {
-		// 全て既読になったイベントを発行
-		publishMainStream(userId, 'readAllUnreadMentions');
+		if (note.user != null) { // たぶんnullになることは無いはずだけど一応
+			for (const antenna of myAntennas) {
+				if (checkHitAntenna(antenna, note, note.user as any, undefined, Array.from(following))) {
+					readAntennaNotes.push(note);
+				}
+			}
+		}
 	}
 
-	if (count2 == 0) {
-		// 全て既読になったイベントを発行
-		publishMainStream(userId, 'readAllUnreadSpecifiedNotes');
+	if ((readMentions.length > 0) || (readSpecifiedNotes.length > 0) || (readChannelNotes.length > 0)) {
+		// Remove the record
+		await NoteUnreads.delete({
+			userId: userId,
+			noteId: In([...readMentions.map(n => n.id), ...readSpecifiedNotes.map(n => n.id), ...readChannelNotes.map(n => n.id)]),
+		});
+
+		// TODO: ↓まとめてクエリしたい
+
+		NoteUnreads.count({
+			userId: userId,
+			isMentioned: true
+		}).then(mentionsCount => {
+			if (mentionsCount === 0) {
+				// 全て既読になったイベントを発行
+				publishMainStream(userId, 'readAllUnreadMentions');
+			}
+		});
+
+		NoteUnreads.count({
+			userId: userId,
+			isSpecified: true
+		}).then(specifiedCount => {
+			if (specifiedCount === 0) {
+				// 全て既読になったイベントを発行
+				publishMainStream(userId, 'readAllUnreadSpecifiedNotes');
+			}
+		});
+
+		NoteUnreads.count({
+			userId: userId,
+			noteChannelId: Not(IsNull())
+		}).then(channelNoteCount => {
+			if (channelNoteCount === 0) {
+				// 全て既読になったイベントを発行
+				publishMainStream(userId, 'readAllChannels');
+			}
+		});
+
+		readNotificationByQuery(userId, {
+			noteId: In([...readMentions.map(n => n.id), ...readSpecifiedNotes.map(n => n.id)]),
+		});
 	}
-});
+
+	if (readAntennaNotes.length > 0) {
+		await AntennaNotes.update({
+			antennaId: In(myAntennas.map(a => a.id)),
+			noteId: In(readAntennaNotes.map(n => n.id))
+		}, {
+			read: true
+		});
+
+		// TODO: まとめてクエリしたい
+		for (const antenna of myAntennas) {
+			const count = await AntennaNotes.count({
+				antennaId: antenna.id,
+				read: false
+			});
+
+			if (count === 0) {
+				publishMainStream(userId, 'readAntenna', antenna);
+			}
+		}
+
+		Users.getHasUnreadAntenna(userId).then(unread => {
+			if (!unread) {
+				publishMainStream(userId, 'readAllAntennas');
+			}
+		});
+	}
+}

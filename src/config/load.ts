@@ -3,10 +3,9 @@
  */
 
 import * as fs from 'fs';
-import { URL } from 'url';
 import * as yaml from 'js-yaml';
 import { Source, Mixin } from './types';
-import * as pkg from '../../package.json';
+const meta = require('../meta.json');
 
 /**
  * Path of configuration directory
@@ -16,12 +15,12 @@ const dir = `${__dirname}/../../.config`;
 /**
  * Path of configuration file
  */
-const path = process.env.NODE_ENV == 'test'
+const path = process.env.NODE_ENV === 'test'
 	? `${dir}/test.yml`
 	: `${dir}/default.yml`;
 
 export default function load() {
-	const config = yaml.safeLoad(fs.readFileSync(path, 'utf-8')) as Source;
+	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
 	const mixin = {} as Mixin;
 
@@ -31,6 +30,7 @@ export default function load() {
 
 	config.port = config.port || parseInt(process.env.PORT || '', 10);
 
+	mixin.version = meta.version;
 	mixin.host = url.host;
 	mixin.hostname = url.hostname;
 	mixin.scheme = url.protocol.replace(/:$/, '');
@@ -39,9 +39,9 @@ export default function load() {
 	mixin.apiUrl = `${mixin.scheme}://${mixin.host}/api`;
 	mixin.authUrl = `${mixin.scheme}://${mixin.host}/auth`;
 	mixin.driveUrl = `${mixin.scheme}://${mixin.host}/files`;
-	mixin.userAgent = `Misskey/${pkg.version} (${config.url})`;
+	mixin.userAgent = `Misskey/${meta.version} (${config.url})`;
 
-	if (config.autoAdmin == null) config.autoAdmin = false;
+	if (!config.redis.prefix) config.redis.prefix = mixin.host;
 
 	return Object.assign(config, mixin);
 }

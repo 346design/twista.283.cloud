@@ -1,19 +1,13 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { DriveFolders } from '../../../../models';
 import { makePaginationQuery } from '../../common/make-pagination-query';
-import { types, bool } from '../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': 'ドライブのフォルダ一覧を取得します。',
-		'en-US': 'Get folders of drive.'
-	},
-
 	tags: ['drive'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:drive',
 
@@ -33,16 +27,16 @@ export const meta = {
 
 		folderId: {
 			validator: $.optional.nullable.type(ID),
-			default: null as any,
+			default: null,
 		}
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'DriveFolder',
 		}
 	},

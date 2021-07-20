@@ -4,11 +4,7 @@
 
 import * as fs from 'fs';
 import * as webpack from 'webpack';
-import chalk from 'chalk';
 const { VueLoaderPlugin } = require('vue-loader');
-//const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
-const ProgressBarPlugin = require('progress-bar-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
 
 class WebpackOnBuildPlugin {
 	constructor(readonly callback: (stats: any) => void) {
@@ -19,34 +15,28 @@ class WebpackOnBuildPlugin {
 	}
 }
 
-const isProduction = process.env.NODE_ENV == 'production';
-
-const constants = require('./src/const.json');
+const isProduction = process.env.NODE_ENV === 'production';
 
 const locales = require('./locales');
 const meta = require('./package.json');
-const codename = meta.codename;
 
 const postcss = {
 	loader: 'postcss-loader',
 	options: {
-		plugins: [
-			require('cssnano')({
-				preset: 'default'
-			})
-		]
+		postcssOptions: {
+			plugins: [
+				require('cssnano')({
+					preset: 'default'
+				})
+			]
+		}
 	},
 };
 
 module.exports = {
 	entry: {
-		desktop: './src/client/app/desktop/script.ts',
-		mobile: './src/client/app/mobile/script.ts',
-		dev: './src/client/app/dev/script.ts',
-		auth: './src/client/app/auth/script.ts',
-		admin: './src/client/app/admin/script.ts',
-		test: './src/client/app/test/script.ts',
-		sw: './src/client/app/sw.js'
+		app: './src/client/init.ts',
+		sw: './src/client/sw/sw.ts'
 	},
 	module: {
 		rules: [{
@@ -60,11 +50,9 @@ module.exports = {
 						preserveWhitespace: false
 					}
 				}
-			}, {
-				loader: 'vue-svg-inline-loader'
 			}]
 		}, {
-			test: /\.styl(us)?$/,
+			test: /\.scss?$/,
 			exclude: /node_modules/,
 			oneOf: [{
 				resourceQuery: /module/,
@@ -73,18 +61,36 @@ module.exports = {
 				}, {
 					loader: 'css-loader',
 					options: {
-						modules: true
+						modules: true,
+						esModule: false, // TODO: trueにすると壊れる。Vue3移行の折にはtrueにできるかもしれない
+						url: false,
 					}
 				}, postcss, {
-					loader: 'stylus-loader'
+					loader: 'sass-loader',
+					options: {
+						implementation: require('sass'),
+						sassOptions: {
+							fiber: false
+						}
+					}
 				}]
 			}, {
 				use: [{
 					loader: 'vue-style-loader'
 				}, {
-					loader: 'css-loader'
+					loader: 'css-loader',
+					options: {
+						url: false,
+						esModule: false, // TODO: trueにすると壊れる。Vue3移行の折にはtrueにできるかもしれない
+					}
 				}, postcss, {
-					loader: 'stylus-loader'
+					loader: 'sass-loader',
+					options: {
+						implementation: require('sass'),
+						sassOptions: {
+							fiber: false
+						}
+					}
 				}]
 			}]
 		}, {
@@ -92,14 +98,27 @@ module.exports = {
 			use: [{
 				loader: 'vue-style-loader'
 			}, {
-				loader: 'css-loader'
+				loader: 'css-loader',
+				options: {
+					esModule: false, // TODO: trueにすると壊れる。Vue3移行の折にはtrueにできるかもしれない
+				}
 			}, postcss]
 		}, {
+			test: /\.svg$/,
+			use: [
+				'vue-loader',
+				'vue-svg-loader',
+			],
+		}, {
 			test: /\.(eot|woff|woff2|svg|ttf)([?]?.*)$/,
-			loader: 'url-loader'
+			type: 'asset/resource'
 		}, {
 			test: /\.json5$/,
-			loader: 'json5-loader'
+			loader: 'json5-loader',
+			options: {
+				esModule: false,
+			},
+			type: 'javascript/auto'
 		}, {
 			test: /\.ts$/,
 			exclude: /node_modules/,
@@ -107,59 +126,54 @@ module.exports = {
 				loader: 'ts-loader',
 				options: {
 					happyPackMode: true,
-					configFile: __dirname + '/src/client/app/tsconfig.json',
+					transpileOnly: true,
+					configFile: __dirname + '/src/client/tsconfig.json',
 					appendTsSuffixTo: [/\.vue$/]
 				}
 			}]
 		}]
 	},
 	plugins: [
-		//new HardSourceWebpackPlugin(),
-		new ProgressBarPlugin({
-			format: chalk`  {cyan.bold yes we can} {bold [}:bar{bold ]} {green.bold :percent} {gray (:current/:total)} :elapseds`,
-			clear: false
-		}),
+		new webpack.ProgressPlugin({}),
 		new webpack.DefinePlugin({
-			_COPYRIGHT_: JSON.stringify(constants.copyright),
 			_VERSION_: JSON.stringify(meta.version),
-			_CODENAME_: JSON.stringify(codename),
-			_LANGS_: JSON.stringify(Object.entries(locales).map(([k, v]: [string, any]) => [k, v && v.meta && v.meta.lang])),
-			_ENV_: JSON.stringify(process.env.NODE_ENV)
-		}),
-		new webpack.DefinePlugin({
-			'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development')
-		}),
-		new WebpackOnBuildPlugin((stats: any) => {
-			fs.writeFileSync('./built/client/meta.json', JSON.stringify({ version: meta.version }), 'utf-8');
-
-			fs.mkdirSync('./built/client/assets/locales', { recursive: true });
-
-			for (const [lang, locale] of Object.entries(locales))
-				fs.writeFileSync(`./built/client/assets/locales/${lang}.json`, JSON.stringify(locale), 'utf-8');
+			_LANGS_: JSON.stringify(Object.entries(locales).map(([k, v]: [string, any]) => [k, v._lang_])),
+			_ENV_: JSON.stringify(process.env.NODE_ENV),
+			_DEV_: process.env.NODE_ENV !== 'production',
+			_PERF_PREFIX_: JSON.stringify('Misskey:'),
+			_DATA_TRANSFER_DRIVE_FILE_: JSON.stringify('mk_drive_file'),
+			_DATA_TRANSFER_DRIVE_FOLDER_: JSON.stringify('mk_drive_folder'),
+			_DATA_TRANSFER_DECK_COLUMN_: JSON.stringify('mk_deck_column'),
+			__VUE_OPTIONS_API__: true,
+			__VUE_PROD_DEVTOOLS__: false,
 		}),
 		new VueLoaderPlugin(),
-		new webpack.optimize.ModuleConcatenationPlugin()
+		new WebpackOnBuildPlugin((stats: any) => {
+			fs.writeFileSync('./built/meta.json', JSON.stringify({ version: meta.version }), 'utf-8');
+		}),
 	],
 	output: {
-		path: __dirname + '/built/client/assets',
+		path: __dirname + '/built/assets',
 		filename: `[name].${meta.version}.js`,
-		publicPath: `/assets/`
+		publicPath: `/assets/`,
+		pathinfo: false,
 	},
 	resolve: {
 		extensions: [
 			'.js', '.ts', '.json'
 		],
 		alias: {
+			'@client': __dirname + '/src/client',
+			'@': __dirname + '/src',
 			'const.styl': __dirname + '/src/client/const.styl'
 		}
 	},
 	resolveLoader: {
 		modules: ['node_modules']
 	},
-	optimization: {
-		minimizer: [new TerserPlugin()]
+	experiments: {
+		topLevelAwait: true
 	},
-	cache: true,
 	devtool: false, //'source-map',
 	mode: isProduction ? 'production' : 'development'
 };

@@ -1,22 +1,16 @@
 import * as ms from 'ms';
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import create from '../../../../../services/drive/add-file';
 import define from '../../../define';
 import { apiLogger } from '../../../logger';
 import { ApiError } from '../../../error';
 import { DriveFiles } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': 'ドライブにファイルをアップロードします。',
-		'en-US': 'Upload a file to drive.'
-	},
-
 	tags: ['drive'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	limit: {
 		duration: ms('1hour'),
@@ -30,35 +24,30 @@ export const meta = {
 	params: {
 		folderId: {
 			validator: $.optional.nullable.type(ID),
-			default: null as any,
-			desc: {
-				'ja-JP': 'フォルダID'
-			}
+			default: null,
+		},
+
+		name: {
+			validator: $.optional.nullable.str,
+			default: null,
 		},
 
 		isSensitive: {
 			validator: $.optional.either($.bool, $.str),
 			default: false,
 			transform: (v: any): boolean => v === true || v === 'true',
-			desc: {
-				'ja-JP': 'このメディアが「閲覧注意」(NSFW)かどうか',
-				'en-US': 'Whether this media is NSFW'
-			}
 		},
 
 		force: {
 			validator: $.optional.either($.bool, $.str),
 			default: false,
 			transform: (v: any): boolean => v === true || v === 'true',
-			desc: {
-				'ja-JP': 'true にすると、同じハッシュを持つファイルが既にアップロードされていても強制的にファイルを作成します。',
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'DriveFile',
 	},
 
@@ -71,9 +60,9 @@ export const meta = {
 	}
 };
 
-export default define(meta, async (ps, user, app, file, cleanup) => {
+export default define(meta, async (ps, user, _, file, cleanup) => {
 	// Get 'name' parameter
-	let name = file.originalname;
+	let name = ps.name || file.originalname;
 	if (name !== undefined && name !== null) {
 		name = name.trim();
 		if (name.length === 0) {

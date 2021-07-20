@@ -2,23 +2,18 @@
  * Tests of Note
  *
  * How to run the tests:
- * > mocha test/note.ts --require ts-node/register
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/note.ts --require ts-node/register
  *
  * To specify test:
- * > mocha test/note.ts --require ts-node/register -g 'test name'
- *
- * If the tests not start, try set following enviroment variables:
- * TS_NODE_FILES=true and TS_NODE_TRANSPILE_ONLY=true
- * for more details, please see: https://github.com/TypeStrong/ts-node/issues/754
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/note.ts --require ts-node/register -g 'test name'
  */
 
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
-import { async, signup, request, post, uploadFile } from './utils';
-import { Note } from '../built/models/entities/note';
-const initDb = require('../built/db/postgre.js').initDb;
+import { async, signup, request, post, uploadFile, startServer, shutdownServer, initTestDb } from './utils';
+import { Note } from '../src/models/entities/note';
 
 describe('Note', () => {
 	let p: childProcess.ChildProcess;
@@ -27,26 +22,16 @@ describe('Note', () => {
 	let alice: any;
 	let bob: any;
 
-	before(done => {
-		p = childProcess.spawn('node', [__dirname + '/../index.js'], {
-			stdio: ['inherit', 'inherit', 'ipc'],
-			env: { NODE_ENV: 'test' }
-		});
-		p.on('message', message => {
-			if (message === 'ok') {
-				(p.channel as any).onread = () => {};
-				initDb(true).then(async connection => {
-					Notes = connection.getRepository(Note);
-					alice = await signup({ username: 'alice' });
-					bob = await signup({ username: 'bob' });
-					done();
-				});
-			}
-		});
+	before(async () => {
+		p = await startServer();
+		const connection = await initTestDb(true);
+		Notes = connection.getRepository(Note);
+		alice = await signup({ username: 'alice' });
+		bob = await signup({ username: 'bob' });
 	});
 
-	after(() => {
-		p.kill();
+	after(async () => {
+		await shutdownServer(p);
 	});
 
 	it('投稿できる', async(async () => {

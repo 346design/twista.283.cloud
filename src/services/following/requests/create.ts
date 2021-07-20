@@ -4,10 +4,10 @@ import renderFollow from '../../../remote/activitypub/renderer/follow';
 import { deliver } from '../../../queue';
 import { User } from '../../../models/entities/user';
 import { Blockings, FollowRequests, Users } from '../../../models';
-import { genId } from '../../../misc/gen-id';
+import { genId } from '@/misc/gen-id';
 import { createNotification } from '../../create-notification';
 
-export default async function(follower: User, followee: User, requestId?: string) {
+export default async function(follower: { id: User['id']; host: User['host']; uri: User['host']; inbox: User['inbox']; sharedInbox: User['sharedInbox']; }, followee: { id: User['id']; host: User['host']; uri: User['host']; inbox: User['inbox']; sharedInbox: User['sharedInbox']; }, requestId?: string) {
 	if (follower.id === followee.id) return;
 
 	// check blocking
@@ -25,7 +25,7 @@ export default async function(follower: User, followee: User, requestId?: string
 	if (blocking != null) throw new Error('blocking');
 	if (blocked != null) throw new Error('blocked');
 
-	await FollowRequests.save({
+	const followRequest = await FollowRequests.save({
 		id: genId(),
 		createdAt: new Date(),
 		followerId: follower.id,
@@ -43,14 +43,17 @@ export default async function(follower: User, followee: User, requestId?: string
 
 	// Publish receiveRequest event
 	if (Users.isLocalUser(followee)) {
-		Users.pack(follower, followee).then(packed => publishMainStream(followee.id, 'receiveFollowRequest', packed));
+		Users.pack(follower.id, followee).then(packed => publishMainStream(followee.id, 'receiveFollowRequest', packed));
 
-		Users.pack(followee, followee, {
+		Users.pack(followee.id, followee, {
 			detail: true
 		}).then(packed => publishMainStream(followee.id, 'meUpdated', packed));
 
 		// 通知を作成
-		createNotification(followee.id, follower.id, 'receiveFollowRequest');
+		createNotification(followee.id, 'receiveFollowRequest', {
+			notifierId: follower.id,
+			followRequestId: followRequest.id
+		});
 	}
 
 	if (Users.isLocalUser(follower) && Users.isRemoteUser(followee)) {

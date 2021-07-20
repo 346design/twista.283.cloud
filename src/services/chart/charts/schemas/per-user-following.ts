@@ -1,38 +1,33 @@
-import { types, bool } from '../../../../misc/schema';
-
 export const logSchema = {
 	/**
 	 * フォローしている
 	 */
 	followings: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		properties: {
 			/**
 			 * フォローしている合計
 			 */
 			total: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォローしている合計',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 
 			/**
 			 * フォローした数
 			 */
 			inc: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォローした数',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 
 			/**
 			 * フォロー解除した数
 			 */
 			dec: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォロー解除した数',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 		}
 	},
@@ -41,51 +36,48 @@ export const logSchema = {
 	 * フォローされている
 	 */
 	followers: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		properties: {
 			/**
 			 * フォローされている合計
 			 */
 			total: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォローされている合計',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 
 			/**
 			 * フォローされた数
 			 */
 			inc: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォローされた数',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 
 			/**
 			 * フォロー解除された数
 			 */
 			dec: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'フォロー解除された数',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 		}
 	},
 };
 
 export const schema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		local: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 		remote: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 	}

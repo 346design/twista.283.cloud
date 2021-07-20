@@ -2,46 +2,31 @@
  * Tests of streaming API
  *
  * How to run the tests:
- * > mocha test/streaming.ts --require ts-node/register
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/streaming.ts --require ts-node/register
  *
  * To specify test:
- * > mocha test/streaming.ts --require ts-node/register -g 'test name'
- *
- * If the tests not start, try set following enviroment variables:
- * TS_NODE_FILES=true and TS_NODE_TRANSPILE_ONLY=true
- * for more details, please see: https://github.com/TypeStrong/ts-node/issues/754
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/streaming.ts --require ts-node/register -g 'test name'
  */
 
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
-import { connectStream, signup, request, post } from './utils';
-import { Following } from '../built/models/entities/following';
-const initDb = require('../built/db/postgre.js').initDb;
+import { connectStream, signup, request, post, startServer, shutdownServer, initTestDb } from './utils';
+import { Following } from '../src/models/entities/following';
 
 describe('Streaming', () => {
 	let p: childProcess.ChildProcess;
 	let Followings: any;
 
-	beforeEach(done => {
-		p = childProcess.spawn('node', [__dirname + '/../index.js'], {
-			stdio: ['inherit', 'inherit', 'ipc'],
-			env: { NODE_ENV: 'test' }
-		});
-		p.on('message', message => {
-			if (message === 'ok') {
-				(p.channel as any).onread = () => {};
-				initDb(true).then(async (connection: any) => {
-					Followings = connection.getRepository(Following);
-					done();
-				});
-			}
-		});
+	beforeEach(async () => {
+		p = await startServer();
+		const connection = await initTestDb(true);
+		Followings = connection.getRepository(Following);
 	});
 
-	afterEach(() => {
-		p.kill();
+	afterEach(async () => {
+		await shutdownServer(p);
 	});
 
 	const follow = async (follower: any, followee: any) => {
@@ -329,7 +314,7 @@ describe('Streaming', () => {
 			}, 3000);
 		}));
 
-		it('フォローしているローカルユーザーのダイレクト投稿が流れる', () => new Promise(async done => {
+		it('フォローしているローカルユーザーのダイレクト投稿は流れない', () => new Promise(async done => {
 			const alice = await signup({ username: 'alice' });
 			const bob = await signup({ username: 'bob' });
 
@@ -338,12 +323,11 @@ describe('Streaming', () => {
 				userId: bob.id
 			}, alice);
 
+			let fired = false;
+
 			const ws = await connectStream(alice, 'localTimeline', ({ type, body }) => {
 				if (type == 'note') {
-					assert.deepStrictEqual(body.userId, bob.id);
-					assert.deepStrictEqual(body.text, 'foo');
-					ws.close();
-					done();
+					fired = true;
 				}
 			});
 
@@ -353,6 +337,12 @@ describe('Streaming', () => {
 				visibility: 'specified',
 				visibleUserIds: [alice.id]
 			});
+
+			setTimeout(() => {
+				assert.strictEqual(fired, false);
+				ws.close();
+				done();
+			}, 3000);
 		}));
 
 		it('フォローしていないローカルユーザーのフォロワー宛て投稿は流れない', () => new Promise(async done => {

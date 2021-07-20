@@ -1,25 +1,20 @@
 import define from '../../../define';
 import { UserGroups, UserGroupJoinings } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 import { Not, In } from 'typeorm';
 
 export const meta = {
-	desc: {
-		'ja-JP': '自分の所属するユーザーグループ一覧を取得します。'
-	},
-
 	tags: ['groups', 'account'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:user-groups',
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'UserGroup',
 		}
 	},

@@ -1,24 +1,23 @@
 import define from '../define';
 import { Users } from '../../../models';
-import { types, bool } from '../../../misc/schema';
-import { fetchMeta } from '../../../misc/fetch-meta';
-import parseAcct from '../../../misc/acct/parse';
+import { fetchMeta } from '@/misc/fetch-meta';
+import { parseAcct } from '@/misc/acct';
 import { User } from '../../../models/entities/user';
 
 export const meta = {
 	tags: ['users'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'User',
 		}
 	},

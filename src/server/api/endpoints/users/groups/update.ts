@@ -1,43 +1,29 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { UserGroups } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定したユーザーグループを更新します。',
-		'en-US': 'Update a user group'
-	},
-
 	tags: ['groups'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:user-groups',
 
 	params: {
 		groupId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象となるユーザーグループのID',
-				'en-US': 'ID of target user group'
-			}
 		},
 
 		name: {
 			validator: $.str.range(1, 100),
-			desc: {
-				'ja-JP': 'このユーザーグループの名前',
-				'en-US': 'name of this user group'
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'UserGroup',
 	},
 

@@ -2,37 +2,27 @@
  * Tests of API (visibility)
  *
  * How to run the tests:
- * > mocha test/api-visibility.ts --require ts-node/register
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/api-visibility.ts --require ts-node/register
  *
  * To specify test:
- * > mocha test/api-visibility.ts --require ts-node/register -g 'test name'
- *
- * If the tests not start, try set following enviroment variables:
- * TS_NODE_FILES=true and TS_NODE_TRANSPILE_ONLY=true
- * for more details, please see: https://github.com/TypeStrong/ts-node/issues/754
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/api-visibility.ts --require ts-node/register -g 'test name'
  */
 
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
-import { async, signup, request, post } from './utils';
+import { async, signup, request, post, startServer, shutdownServer } from './utils';
 
 describe('API visibility', () => {
 	let p: childProcess.ChildProcess;
 
-	before(done => {
-		p = childProcess.spawn('node', [__dirname + '/../index.js'], {
-			stdio: ['inherit', 'inherit', 'ipc'],
-			env: { NODE_ENV: 'test' }
-		});
-		p.on('message', message => {
-			if (message === 'ok') done();
-		});
+	before(async () => {
+		p = await startServer();
 	});
 
-	after(() => {
-		p.kill();
+	after(async () => {
+		await shutdownServer(p);
 	});
 
 	describe('Note visibility', async () => {
@@ -45,6 +35,8 @@ describe('API visibility', () => {
 		let other: any;
 		/** 非フォロワーでもリプライやメンションをされた人 */
 		let target: any;
+		/** specified mentionでmentionを飛ばされる人 */
+		let target2: any;
 
 		/** public-post */
 		let pub: any;
@@ -90,6 +82,7 @@ describe('API visibility', () => {
 			follower = await signup({ username: 'follower' });
 			other    = await signup({ username: 'other' });
 			target   = await signup({ username: 'target' });
+			target2  = await signup({ username: 'target2' });
 
 			// follow alice <= follower
 			await request('/following/create', { userId: alice.id }, follower);
@@ -111,7 +104,7 @@ describe('API visibility', () => {
 			pubM  = await post(alice, { text: '@target x', replyId: tgt.id, visibility: 'public' });
 			homeM = await post(alice, { text: '@target x', replyId: tgt.id, visibility: 'home' });
 			folM  = await post(alice, { text: '@target x', replyId: tgt.id, visibility: 'followers' });
-			speM  = await post(alice, { text: '@target x', replyId: tgt.id, visibility: 'specified' });
+			speM  = await post(alice, { text: '@target2 x', replyId: tgt.id, visibility: 'specified' });
 			//#endregion
 		});
 
@@ -376,9 +369,9 @@ describe('API visibility', () => {
 			assert.strictEqual(res.body.text, '@target x');
 		}));
 
-		it('[show] followers-mentionを非フォロワーがメンションされていても見れない', async(async () => {
+		it('[show] followers-mentionをメンションされていれば非フォロワーでも見れる', async(async () => {
 			const res = await show(folM.id, target);
-			assert.strictEqual(res.body.isHidden, true);
+			assert.strictEqual(res.body.text, '@target x');
 		}));
 
 		it('[show] followers-mentionをフォロワーが見れる', async(async () => {
@@ -399,16 +392,16 @@ describe('API visibility', () => {
 		// specified
 		it('[show] specified-mentionを自分が見れる', async(async () => {
 			const res = await show(speM.id, alice);
-			assert.strictEqual(res.body.text, '@target x');
+			assert.strictEqual(res.body.text, '@target2 x');
 		}));
 
 		it('[show] specified-mentionを指定ユーザーが見れる', async(async () => {
 			const res = await show(speM.id, target);
-			assert.strictEqual(res.body.text, '@target x');
+			assert.strictEqual(res.body.text, '@target2 x');
 		}));
 
 		it('[show] specified-mentionをされた人が指定されてなかったら見れない', async(async () => {
-			const res = await show(speM.id, target);
+			const res = await show(speM.id, target2);
 			assert.strictEqual(res.body.isHidden, true);
 		}));
 

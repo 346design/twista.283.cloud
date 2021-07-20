@@ -1,5 +1,5 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import { deleteFile } from '../../../../../services/drive/delete-file';
 import { publishDriveStream } from '../../../../../services/stream';
 import define from '../../../define';
@@ -7,26 +7,15 @@ import { ApiError } from '../../../error';
 import { DriveFiles } from '../../../../../models';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': 'ドライブのファイルを削除します。',
-		'en-US': 'Delete a file of drive.'
-	},
-
 	tags: ['drive'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:drive',
 
 	params: {
 		fileId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象のファイルID',
-				'en-US': 'Target file ID'
-			}
 		}
 	},
 

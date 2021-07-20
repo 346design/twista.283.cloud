@@ -1,4 +1,4 @@
-import { publishMainStream } from '../stream';
+import { publishMainStream, publishUserEvent } from '../stream';
 import { renderActivity } from '../../remote/activitypub/renderer';
 import renderFollow from '../../remote/activitypub/renderer/follow';
 import renderUndo from '../../remote/activitypub/renderer/undo';
@@ -11,7 +11,7 @@ import { instanceChart, perUserFollowingChart } from '../chart';
 
 const logger = new Logger('following/delete');
 
-export default async function(follower: User, followee: User, silent = false) {
+export default async function(follower: { id: User['id']; host: User['host']; uri: User['host']; inbox: User['inbox']; sharedInbox: User['sharedInbox']; }, followee: { id: User['id']; host: User['host']; uri: User['host']; inbox: User['inbox']; sharedInbox: User['sharedInbox']; }, silent = false) {
 	const following = await Followings.findOne({
 		followerId: follower.id,
 		followeeId: followee.id
@@ -22,8 +22,27 @@ export default async function(follower: User, followee: User, silent = false) {
 		return;
 	}
 
-	Followings.delete(following.id);
+	await Followings.delete(following.id);
 
+	decrementFollowing(follower, followee);
+
+	// Publish unfollow event
+	if (!silent && Users.isLocalUser(follower)) {
+		Users.pack(followee.id, follower, {
+			detail: true
+		}).then(packed => {
+			publishUserEvent(follower.id, 'unfollow', packed);
+			publishMainStream(follower.id, 'unfollow', packed);
+		});
+	}
+
+	if (Users.isLocalUser(follower) && Users.isRemoteUser(followee)) {
+		const content = renderActivity(renderUndo(renderFollow(follower, followee), follower));
+		deliver(follower, content, followee.inbox);
+	}
+}
+
+export async function decrementFollowing(follower: { id: User['id']; host: User['host']; }, followee: { id: User['id']; host: User['host']; }) {
 	//#region Decrement following count
 	Users.decrement({ id: follower.id }, 'followingCount', 1);
 	//#endregion
@@ -47,16 +66,4 @@ export default async function(follower: User, followee: User, silent = false) {
 	//#endregion
 
 	perUserFollowingChart.update(follower, followee, false);
-
-	// Publish unfollow event
-	if (!silent && Users.isLocalUser(follower)) {
-		Users.pack(followee, follower, {
-			detail: true
-		}).then(packed => publishMainStream(follower.id, 'unfollow', packed));
-	}
-
-	if (Users.isLocalUser(follower) && Users.isRemoteUser(followee)) {
-		const content = renderActivity(renderUndo(renderFollow(follower, followee), follower));
-		deliver(follower, content, followee.inbox);
-	}
 }

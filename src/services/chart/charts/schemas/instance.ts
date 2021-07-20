@@ -1,74 +1,63 @@
-import { types, bool } from '../../../../misc/schema';
-
 /**
  * インスタンスごとのチャート
  */
 export const schema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		requests: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				failed: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '失敗したリクエスト数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				succeeded: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '成功したリクエスト数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				received: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '受信したリクエスト数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 			}
 		},
 
 		notes: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				total: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全投稿数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				inc: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加した投稿数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				dec: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少した投稿数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 
 				diffs: {
-					type: types.object,
-					optional: bool.false, nullable: bool.false,
+					type: 'object' as const,
+					optional: false as const, nullable: false as const,
 					properties: {
 						normal: {
-							type: types.number,
-							optional: bool.false, nullable: bool.false,
-							description: '通常の投稿数の差分'
+							type: 'number' as const,
+							optional: false as const, nullable: false as const,
 						},
 
 						reply: {
-							type: types.number,
-							optional: bool.false, nullable: bool.false,
-							description: 'リプライの投稿数の差分'
+							type: 'number' as const,
+							optional: false as const, nullable: false as const,
 						},
 
 						renote: {
-							type: types.number,
-							optional: bool.false, nullable: bool.false,
-							description: 'Renoteの投稿数の差分'
+							type: 'number' as const,
+							optional: false as const, nullable: false as const,
 						},
 					}
 				},
@@ -76,104 +65,89 @@ export const schema = {
 		},
 
 		users: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				total: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全ユーザー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				inc: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加したユーザー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				dec: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少したユーザー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 			}
 		},
 
 		following: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				total: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全フォロー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				inc: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加したフォロー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				dec: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少したフォロー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 			}
 		},
 
 		followers: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				total: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全フォロワー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				inc: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加したフォロワー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				dec: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少したフォロワー数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 			}
 		},
 
 		drive: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: {
 				totalFiles: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全ドライブファイル数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				totalUsage: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '集計期間時点での、全ドライブファイルの合計サイズ'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				incFiles: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加したドライブファイル数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				incUsage: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '増加したドライブ使用量'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				decFiles: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少したドライブファイル数'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 				decUsage: {
-					type: types.number,
-					optional: bool.false, nullable: bool.false,
-					description: '減少したドライブ使用量'
+					type: 'number' as const,
+					optional: false as const, nullable: false as const,
 				},
 			}
 		},

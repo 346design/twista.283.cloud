@@ -1,44 +1,33 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
-import { fetchMeta } from '../../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 import { ApiError } from '../../error';
 import { Notes } from '../../../../models';
-import { generateMuteQuery } from '../../common/generate-mute-query';
+import { generateMutedUserQuery } from '../../common/generate-muted-user-query';
 import { makePaginationQuery } from '../../common/make-pagination-query';
 import { generateVisibilityQuery } from '../../common/generate-visibility-query';
 import { activeUsersChart } from '../../../../services/chart';
 import { Brackets } from 'typeorm';
-import { types, bool } from '../../../../misc/schema';
+import { generateRepliesQuery } from '../../common/generate-replies-query';
+import { generateMutedNoteQuery } from '../../common/generate-muted-note-query';
+import { generateChannelQuery } from '../../common/generate-channel-query';
 
 export const meta = {
-	desc: {
-		'ja-JP': 'ローカルタイムラインを取得します。'
-	},
-
 	tags: ['notes'],
 
 	params: {
 		withFiles: {
 			validator: $.optional.bool,
-			desc: {
-				'ja-JP': 'ファイルが添付された投稿に限定するか否か'
-			}
 		},
 
 		fileType: {
 			validator: $.optional.arr($.str),
-			desc: {
-				'ja-JP': '指定された種類のファイルが添付された投稿のみを取得します'
-			}
 		},
 
 		excludeNsfw: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': 'true にすると、NSFW指定されたファイルを除外します(fileTypeが指定されている場合のみ有効)'
-			}
 		},
 
 		limit: {
@@ -64,11 +53,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'Note',
 		}
 	},
@@ -94,10 +83,17 @@ export default define(meta, async (ps, user) => {
 	const query = makePaginationQuery(Notes.createQueryBuilder('note'),
 			ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
 		.andWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)')
-		.leftJoinAndSelect('note.user', 'user');
+		.innerJoinAndSelect('note.user', 'user')
+		.leftJoinAndSelect('note.reply', 'reply')
+		.leftJoinAndSelect('note.renote', 'renote')
+		.leftJoinAndSelect('reply.user', 'replyUser')
+		.leftJoinAndSelect('renote.user', 'renoteUser');
 
-	if (user) generateVisibilityQuery(query, user);
-	if (user) generateMuteQuery(query, user);
+	generateChannelQuery(query, user);
+	generateRepliesQuery(query, user);
+	generateVisibilityQuery(query, user);
+	if (user) generateMutedUserQuery(query, user);
+	if (user) generateMutedNoteQuery(query, user);
 
 	if (ps.withFiles) {
 		query.andWhere('note.fileIds != \'{}\'');
@@ -113,12 +109,8 @@ export default define(meta, async (ps, user) => {
 		}));
 
 		if (ps.excludeNsfw) {
-			// v11 TODO
-			/*
-			query['_files.isSensitive'] = {
-				$ne: true
-			};
-			*/
+			query.andWhere('note.cw IS NULL');
+			query.andWhere('0 = (SELECT COUNT(*) FROM drive_file df WHERE df.id = ANY(note."fileIds") AND df."isSensitive" = TRUE)');
 		}
 	}
 	//#endregion

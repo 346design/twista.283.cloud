@@ -1,46 +1,30 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { DriveFile } from '../../../../../models/entities/drive-file';
 import { DriveFiles } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '指定したドライブのファイルの情報を取得します。',
-		'en-US': 'Get specified file of drive.'
-	},
-
 	tags: ['drive'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:drive',
 
 	params: {
 		fileId: {
 			validator: $.optional.type(ID),
-			desc: {
-				'ja-JP': '対象のファイルID',
-				'en-US': 'Target file ID'
-			}
 		},
 
 		url: {
 			validator: $.optional.str,
-			desc: {
-				'ja-JP': '対象のファイルのURL',
-				'en-US': 'Target file URL'
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'DriveFile',
 	},
 
@@ -94,6 +78,7 @@ export default define(meta, async (ps, user) => {
 
 	return await DriveFiles.pack(file, {
 		detail: true,
+		withUser: true,
 		self: true
 	});
 });

@@ -1,7 +1,16 @@
 import * as fs from 'fs';
 import * as WebSocket from 'ws';
-const fetch = require('node-fetch');
-import * as req from 'request';
+import fetch from 'node-fetch';
+const FormData = require('form-data');
+import * as childProcess from 'child_process';
+import * as http from 'http';
+import loadConfig from '../src/config/load';
+import { SIGKILL } from 'constants';
+import { createConnection, getConnection } from 'typeorm';
+import { entities } from '../src/db/postgre';
+
+const config = loadConfig();
+export const port = config.port;
 
 export const async = (fn: Function) => (done: Function) => {
 	fn().then(() => {
@@ -16,23 +25,20 @@ export const request = async (endpoint: string, params: any, me?: any): Promise<
 		i: me.token
 	} : {};
 
-	try {
-		const res = await fetch('http://localhost:80/api' + endpoint, {
-			method: 'POST',
-			body: JSON.stringify(Object.assign(auth, params))
-		});
+	const res = await fetch(`http://localhost:${port}/api${endpoint}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(Object.assign(auth, params))
+	});
 
-		const status = res.status;
-		const body = res.status !== 204 ? await res.json().catch() : null;
+	const status = res.status;
+	const body = res.status !== 204 ? await res.json().catch() : null;
 
-		return {
-			body, status
-		};
-	} catch (e) {
-		return {
-			body: null, status: 500
-		};
-	}
+	return {
+		body, status
+	};
 };
 
 export const signup = async (params?: any): Promise<any> => {
@@ -63,22 +69,27 @@ export const react = async (user: any, note: any, reaction: string): Promise<any
 	}, user);
 };
 
-export const uploadFile = (user: any, path?: string): Promise<any> => new Promise((ok, rej) => {
-	req.post({
-		url: 'http://localhost:80/api/drive/files/create',
-		formData: {
-			i: user.token,
-			file: fs.createReadStream(path || __dirname + '/resources/Lenna.png')
-		},
-		json: true
-	}, (err, httpResponse, body) => {
-		ok(body);
-	});
-});
+export const uploadFile = (user: any, path?: string): Promise<any> => {
+		const formData = new FormData();
+		formData.append('i', user.token);
+		formData.append('file', fs.createReadStream(path || __dirname + '/resources/Lenna.png'));
+
+		return fetch(`http://localhost:${port}/api/drive/files/create`, {
+			method: 'post',
+			body: formData,
+			timeout: 30 * 1000,
+		}).then(res => {
+			if (!res.ok) {
+				throw `${res.status} ${res.statusText}`;
+			} else {
+				return res.json();
+			}
+		});
+};
 
 export function connectStream(user: any, channel: string, listener: (message: Record<string, any>) => any, params?: any): Promise<WebSocket> {
 	return new Promise((res, rej) => {
-		const ws = new WebSocket(`ws://localhost/streaming?i=${user.token}`);
+		const ws = new WebSocket(`ws://localhost:${port}/streaming?i=${user.token}`);
 
 		ws.on('open', () => {
 			ws.on('message', data => {
@@ -100,5 +111,101 @@ export function connectStream(user: any, channel: string, listener: (message: Re
 				}
 			}));
 		});
+	});
+}
+
+export const simpleGet = async (path: string, accept = '*/*'): Promise<{ status?: number, type?: string, location?: string }> => {
+	// node-fetchだと3xxを取れない
+	return await new Promise((resolve, reject) => {
+		const req = http.request(`http://localhost:${port}${path}`, {
+			headers: {
+				Accept: accept
+			}
+		}, res => {
+			if (res.statusCode! >= 400) {
+				reject(res);
+			} else {
+				resolve({
+					status: res.statusCode,
+					type: res.headers['content-type'],
+					location: res.headers.location,
+				});
+			}
+		});
+
+		req.end();
+	});
+};
+
+export function launchServer(callbackSpawnedProcess: (p: childProcess.ChildProcess) => void, moreProcess: () => Promise<void> = async () => {}) {
+	return (done: (err?: Error) => any) => {
+		const p = childProcess.spawn('node', [__dirname + '/../index.js'], {
+			stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+			env: { NODE_ENV: 'test', PATH: process.env.PATH }
+		});
+		callbackSpawnedProcess(p);
+		p.on('message', message => {
+			if (message === 'ok') moreProcess().then(() => done()).catch(e => done(e));
+		});
+	};
+}
+
+export async function initTestDb(justBorrow = false, initEntities?: any[]) {
+	if (process.env.NODE_ENV !== 'test') throw 'NODE_ENV is not a test';
+
+	try {
+		const conn = await getConnection();
+		await conn.close();
+	} catch (e) {}
+
+	return await createConnection({
+		type: 'postgres',
+		host: config.db.host,
+		port: config.db.port,
+		username: config.db.user,
+		password: config.db.pass,
+		database: config.db.db,
+		synchronize: true && !justBorrow,
+		dropSchema: true && !justBorrow,
+		entities: initEntities || entities
+	});
+}
+
+export function startServer(timeout = 30 * 1000): Promise<childProcess.ChildProcess> {
+	return new Promise((res, rej) => {
+		const t = setTimeout(() => {
+			p.kill(SIGKILL);
+			rej('timeout to start');
+		}, timeout);
+
+		const p = childProcess.spawn('node', [__dirname + '/../index.js'], {
+			stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+			env: { NODE_ENV: 'test', PATH: process.env.PATH }
+		});
+
+		p.on('error', e => rej(e));
+
+		p.on('message', message => {
+			if (message === 'ok') {
+				clearTimeout(t);
+				res(p);
+			}
+		});
+	});
+}
+
+export function shutdownServer(p: childProcess.ChildProcess, timeout = 20 * 1000) {
+	return new Promise((res, rej) => {
+		const t = setTimeout(() => {
+			p.kill(SIGKILL);
+			res('force exit');
+		}, timeout);
+
+		p.once('exit', () => {
+			clearTimeout(t);
+			res('exited');
+		});
+
+		p.kill();
 	});
 }

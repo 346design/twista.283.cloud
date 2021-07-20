@@ -1,34 +1,26 @@
 import $ from 'cafy';
 import define from '../../../define';
 import { DriveFiles } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': '与えられたMD5ハッシュ値を持つファイルを取得します。',
-	},
-
 	tags: ['drive'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:drive',
 
 	params: {
 		md5: {
 			validator: $.str,
-			desc: {
-				'ja-JP': 'ファイルのMD5ハッシュ'
-			}
 		}
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'DriveFile',
 		}
 	},

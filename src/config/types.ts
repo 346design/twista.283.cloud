@@ -14,6 +14,7 @@ export type Source = {
 		db: string;
 		user: string;
 		pass: string;
+		disableCache?: boolean;
 		extra?: { [x: string]: string };
 	};
 	redis: {
@@ -26,12 +27,15 @@ export type Source = {
 	elasticsearch: {
 		host: string;
 		port: number;
-		pass: string;
+		ssl?: boolean;
+		user?: string;
+		pass?: string;
+		index?: string;
 	};
 
-	autoAdmin?: boolean;
-
 	proxy?: string;
+	proxySmtp?: string;
+	proxyBypassHosts?: string[];
 
 	accesslog?: string;
 
@@ -40,12 +44,29 @@ export type Source = {
 	id: string;
 
 	outgoingAddressFamily?: 'ipv4' | 'ipv6' | 'dual';
+
+	deliverJobConcurrency?: number;
+	inboxJobConcurrency?: number;
+	deliverJobPerSec?: number;
+	inboxJobPerSec?: number;
+	deliverJobMaxAttempts?: number;
+	inboxJobMaxAttempts?: number;
+
+	syslog: {
+		host: string;
+		port: number;
+	};
+
+	mediaProxy?: string;
+
+	signToActivityPubGet?: boolean;
 };
 
 /**
  * Misskeyが自動的に(ユーザーが設定した情報から推論して)設定する情報
  */
 export type Mixin = {
+	version: string;
 	host: string;
 	hostname: string;
 	scheme: string;

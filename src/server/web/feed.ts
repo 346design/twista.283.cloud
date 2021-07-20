@@ -1,17 +1,16 @@
 import { Feed } from 'feed';
-import config from '../../config';
+import config from '@/config';
 import { User } from '../../models/entities/user';
 import { Notes, DriveFiles, UserProfiles } from '../../models';
 import { In } from 'typeorm';
-import { ensure } from '../../prelude/ensure';
 
 export default async function(user: User) {
-	const author: Author = {
+	const author = {
 		link: `${config.url}/@${user.username}`,
 		name: user.name || user.username
 	};
 
-	const profile = await UserProfiles.findOne(user.id).then(ensure);
+	const profile = await UserProfiles.findOneOrFail(user.id);
 
 	const notes = await Notes.find({
 		where: {
@@ -30,13 +29,14 @@ export default async function(user: User) {
 		generator: 'Misskey',
 		description: `${user.notesCount} Notes, ${user.followingCount} Following, ${user.followersCount} Followers${profile.description ? ` · ${profile.description}` : ''}`,
 		link: author.link,
-		image: user.avatarUrl,
+		image: user.avatarUrl ? user.avatarUrl : undefined,
 		feedLinks: {
 			json: `${author.link}.json`,
 			atom: `${author.link}.atom`,
 		},
-		author
-	} as FeedOptions);
+		author,
+		copyright: user.name || user.username
+	});
 
 	for (const note of notes) {
 		const files = note.fileIds.length > 0 ? await DriveFiles.find({

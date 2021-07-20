@@ -1,10 +1,13 @@
-import * as request from 'request-promise-native';
-import { IObject } from './type';
-import config from '../../config';
+import config from '@/config';
+import { getJson } from '@/misc/fetch';
+import { ILocalUser } from '../../models/entities/user';
+import { getInstanceActor } from '../../services/instance-actor';
+import { signedGet } from './request';
+import { IObject, isCollectionOrOrderedCollection, ICollection, IOrderedCollection } from './type';
 
 export default class Resolver {
 	private history: Set<string>;
-	private timeout = 10 * 1000;
+	private user?: ILocalUser;
 
 	constructor() {
 		this.history = new Set();
@@ -14,31 +17,19 @@ export default class Resolver {
 		return Array.from(this.history);
 	}
 
-	public async resolveCollection(value: any) {
+	public async resolveCollection(value: string | IObject): Promise<ICollection | IOrderedCollection> {
 		const collection = typeof value === 'string'
 			? await this.resolve(value)
 			: value;
 
-		switch (collection.type) {
-			case 'Collection': {
-				collection.objects = collection.items;
-				break;
-			}
-
-			case 'OrderedCollection': {
-				collection.objects = collection.orderedItems;
-				break;
-			}
-
-			default: {
-				throw new Error(`unknown collection type: ${collection.type}`);
-			}
+		if (isCollectionOrOrderedCollection(collection)) {
+			return collection;
+		} else {
+			throw new Error(`unrecognized collection type: ${collection.type}`);
 		}
-
-		return collection;
 	}
 
-	public async resolve(value: any): Promise<IObject> {
+	public async resolve(value: string | IObject): Promise<IObject> {
 		if (value == null) {
 			throw new Error('resolvee is null (or undefined)');
 		}
@@ -53,16 +44,13 @@ export default class Resolver {
 
 		this.history.add(value);
 
-		const object = await request({
-			url: value,
-			proxy: config.proxy,
-			timeout: this.timeout,
-			headers: {
-				'User-Agent': config.userAgent,
-				Accept: 'application/activity+json, application/ld+json'
-			},
-			json: true
-		});
+		if (config.signToActivityPubGet && !this.user) {
+			this.user = await getInstanceActor();
+		}
+
+		const object = this.user
+			? await signedGet(value, this.user)
+			: await getJson(value, 'application/activity+json, application/ld+json');
 
 		if (object == null || (
 			Array.isArray(object['@context']) ?

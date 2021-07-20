@@ -1,25 +1,20 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { maximum } from '../../../../prelude/array';
 import { ApiError } from '../../error';
 import { getUser } from '../../common/getters';
 import { Not, In, IsNull } from 'typeorm';
 import { Notes, Users } from '../../../../models';
-import { types, bool } from '../../../../misc/schema';
 
 export const meta = {
 	tags: ['users'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		userId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象のユーザーのID',
-				'en-US': 'Target user ID'
-			}
 		},
 
 		limit: {
@@ -29,11 +24,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'User',
 		}
 	},

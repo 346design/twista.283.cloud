@@ -1,28 +1,24 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { getNote } from '../../common/getters';
 import { ApiError } from '../../error';
 import { NoteReactions } from '../../../../models';
-import { types, bool } from '../../../../misc/schema';
+import { DeepPartial } from 'typeorm';
+import { NoteReaction } from '../../../../models/entities/note-reaction';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定した投稿のリアクション一覧を取得します。',
-		'en-US': 'Show reactions of a note.'
-	},
-
 	tags: ['notes', 'reactions'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		noteId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象の投稿のID',
-				'en-US': 'The ID of the target note'
-			}
+		},
+
+		type: {
+			validator: $.optional.nullable.str,
 		},
 
 		limit: {
@@ -45,11 +41,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'NoteReaction',
 		}
 	},
@@ -71,7 +67,15 @@ export default define(meta, async (ps, user) => {
 
 	const query = {
 		noteId: note.id
-	};
+	} as DeepPartial<NoteReaction>;
+
+	if (ps.type) {
+		// ローカルリアクションはホスト名が . とされているが
+		// DB 上ではそうではないので、必要に応じて変換
+		const suffix = '@.:';
+		const type = ps.type.endsWith(suffix) ? ps.type.slice(0, ps.type.length - suffix.length) + ':' : ps.type;
+		query.reaction = type;
+	}
 
 	const reactions = await NoteReactions.find({
 		where: query,

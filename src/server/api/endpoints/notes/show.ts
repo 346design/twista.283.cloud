@@ -1,36 +1,24 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { getNote } from '../../common/getters';
 import { ApiError } from '../../error';
 import { Notes } from '../../../../models';
-import { types, bool } from '../../../../misc/schema';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '指定した投稿を取得します。',
-		'en-US': 'Get a note.'
-	},
-
 	tags: ['notes'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		noteId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象の投稿のID',
-				'en-US': 'Target note ID.'
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'Note',
 	},
 

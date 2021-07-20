@@ -1,29 +1,19 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { Users, Followings } from '../../../../models';
 import { makePaginationQuery } from '../../common/make-pagination-query';
-import { toPunyNullable } from '../../../../misc/convert-host';
-import { types, bool } from '../../../../misc/schema';
+import { toPunyNullable } from '@/misc/convert-host';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定したユーザーのフォロー一覧を取得します。',
-		'en-US': 'Get following users of a user.'
-	},
-
 	tags: ['users'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		userId: {
 			validator: $.optional.type(ID),
-			desc: {
-				'ja-JP': '対象のユーザーのID',
-				'en-US': 'Target user ID'
-			}
 		},
 
 		username: {
@@ -49,11 +39,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'Following',
 		}
 	},
@@ -77,7 +67,8 @@ export default define(meta, async (ps, me) => {
 	}
 
 	const query = makePaginationQuery(Followings.createQueryBuilder('following'), ps.sinceId, ps.untilId)
-		.andWhere(`following.followerId = :userId`, { userId: user.id });
+		.andWhere(`following.followerId = :userId`, { userId: user.id })
+		.innerJoinAndSelect('following.followee', 'followee');
 
 	const followings = await query
 		.take(ps.limit!)

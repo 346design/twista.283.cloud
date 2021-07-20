@@ -1,13 +1,14 @@
-import { types, bool } from '../../../../misc/schema';
-
 export const logSchema = {
 	/**
-	 * 投稿された数
+	 * 投稿したユーザー
 	 */
-	count: {
-		type: types.number,
-		optional: bool.false, nullable: bool.false,
-		description: '投稿された数',
+	users: {
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
+		items: {
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
+		}
 	},
 };
 
@@ -15,17 +16,17 @@ export const logSchema = {
  * ハッシュタグに関するチャート
  */
 export const schema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		local: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 		remote: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 	}

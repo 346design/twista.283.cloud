@@ -1,40 +1,28 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { DriveFiles, Notes } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '指定したドライブのファイルが添付されている投稿一覧を取得します。',
-		'en-US': 'Get the notes that specified file of drive attached.'
-	},
-
 	tags: ['drive', 'notes'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:drive',
 
 	params: {
 		fileId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象のファイルID',
-				'en-US': 'Target file ID'
-			}
 		}
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'Note',
 		}
 	},

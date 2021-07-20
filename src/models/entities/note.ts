@@ -1,10 +1,14 @@
 import { Entity, Index, JoinColumn, Column, PrimaryColumn, ManyToOne } from 'typeorm';
 import { User } from './user';
-import { App } from './app';
 import { DriveFile } from './drive-file';
 import { id } from '../id';
+import { noteVisibilities } from '../../types';
+import { Channel } from './channel';
 
 @Entity()
+@Index('IDX_NOTE_TAGS', { synchronize: false })
+@Index('IDX_NOTE_MENTIONS', { synchronize: false })
+@Index('IDX_NOTE_VISIBLE_USER_IDS', { synchronize: false })
 export class Note {
 	@PrimaryColumn(id())
 	public id: string;
@@ -58,18 +62,6 @@ export class Note {
 	})
 	public cw: string | null;
 
-	@Column({
-		...id(),
-		nullable: true
-	})
-	public appId: App['id'] | null;
-
-	@ManyToOne(type => App, {
-		onDelete: 'SET NULL'
-	})
-	@JoinColumn()
-	public app: App | null;
-
 	@Index()
 	@Column({
 		...id(),
@@ -114,8 +106,8 @@ export class Note {
 	 * followers ... フォロワーのみ
 	 * specified ... visibleUserIds で指定したユーザーのみ
 	 */
-	@Column('enum', { enum: ['public', 'home', 'followers', 'specified'] })
-	public visibility: 'public' | 'home' | 'followers' | 'specified';
+	@Column('enum', { enum: noteVisibilities })
+	public visibility: typeof noteVisibilities[number];
 
 	@Index({ unique: true })
 	@Column('varchar', {
@@ -123,6 +115,12 @@ export class Note {
 		comment: 'The URI of a note. it will be null when the note is local.'
 	})
 	public uri: string | null;
+
+	@Column('varchar', {
+		length: 512, nullable: true,
+		comment: 'The human readable url of a note. it will be null when the note is local.'
+	})
+	public url: string | null;
 
 	@Column('integer', {
 		default: 0, select: false
@@ -177,10 +175,19 @@ export class Note {
 	})
 	public hasPoll: boolean;
 
-	@Column('jsonb', {
-		nullable: true, default: null
+	@Index()
+	@Column({
+		...id(),
+		nullable: true, default: null,
+		comment: 'The ID of source channel.'
 	})
-	public geo: any | null;
+	public channelId: Channel['id'] | null;
+
+	@ManyToOne(type => Channel, {
+		onDelete: 'CASCADE'
+	})
+	@JoinColumn()
+	public channel: Channel | null;
 
 	//#region Denormalized fields
 	@Index()
@@ -228,6 +235,7 @@ export class Note {
 
 export type IMentionedRemoteUsers = {
 	uri: string;
+	url?: string;
 	username: string;
 	host: string;
 }[];

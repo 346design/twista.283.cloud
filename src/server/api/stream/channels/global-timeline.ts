@@ -1,9 +1,10 @@
 import autobind from 'autobind-decorator';
-import shouldMuteThisNote from '../../../../misc/should-mute-this-note';
+import { isMutedUserRelated } from '@/misc/is-muted-user-related';
 import Channel from '../channel';
-import { fetchMeta } from '../../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 import { Notes } from '../../../../models';
 import { PackedNote } from '../../../../models/repositories/note';
+import { checkWordMute } from '@/misc/check-word-mute';
 
 export default class extends Channel {
 	public readonly chName = 'globalTimeline';
@@ -24,6 +25,7 @@ export default class extends Channel {
 	@autobind
 	private async onNote(note: PackedNote) {
 		if (note.visibility !== 'public') return;
+		if (note.channelId != null) return;
 
 		// リプライなら再pack
 		if (note.replyId != null) {
@@ -38,8 +40,24 @@ export default class extends Channel {
 			});
 		}
 
+		// 関係ない返信は除外
+		if (note.reply) {
+			const reply = note.reply as PackedNote;
+			// 「チャンネル接続主への返信」でもなければ、「チャンネル接続主が行った返信」でもなければ、「投稿者の投稿者自身への返信」でもない場合
+			if (reply.userId !== this.user!.id && note.userId !== this.user!.id && reply.userId !== note.userId) return;
+		}
+
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
-		if (shouldMuteThisNote(note, this.muting)) return;
+		if (isMutedUserRelated(note, this.muting)) return;
+
+		// 流れてきたNoteがミュートすべきNoteだったら無視する
+		// TODO: 将来的には、単にMutedNoteテーブルにレコードがあるかどうかで判定したい(以下の理由により難しそうではある)
+		// 現状では、ワードミュートにおけるMutedNoteレコードの追加処理はストリーミングに流す処理と並列で行われるため、
+		// レコードが追加されるNoteでも追加されるより先にここのストリーミングの処理に到達することが起こる。
+		// そのためレコードが存在するかのチェックでは不十分なので、改めてcheckWordMuteを呼んでいる
+		if (this.userProfile && await checkWordMute(note, this.user, this.userProfile.mutedWords)) return;
+
+		this.connection.cacheNote(note);
 
 		this.send('note', note);
 	}

@@ -6,15 +6,11 @@ import { AuthSessions } from '../../../../../models';
 export const meta = {
 	tags: ['auth'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		token: {
 			validator: $.str,
-			desc: {
-				'ja-JP': 'セッションのトークン',
-				'en-US': 'The token of a session.'
-			}
 		}
 	},
 
@@ -23,6 +19,27 @@ export const meta = {
 			message: 'No such session.',
 			code: 'NO_SUCH_SESSION',
 			id: 'bd72c97d-eba7-4adb-a467-f171b8847250'
+		}
+	},
+
+	res: {
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
+		properties: {
+			id: {
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
+				format: 'id'
+			},
+			app: {
+				type: 'object' as const,
+				optional: false as const, nullable: false as const,
+				ref: 'App'
+			},
+			token: {
+				type: 'string' as const,
+				optional: false as const, nullable: false as const
+			}
 		}
 	}
 };

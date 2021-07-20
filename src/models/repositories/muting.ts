@@ -1,9 +1,9 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Users } from '..';
 import { Muting } from '../entities/muting';
-import { ensure } from '../../prelude/ensure';
 import { awaitAll } from '../../prelude/await-all';
-import { types, bool, SchemaType } from '../../misc/schema';
+import { SchemaType } from '@/misc/schema';
+import { User } from '../entities/user';
 
 export type PackedMuting = SchemaType<typeof packedMutingSchema>;
 
@@ -11,9 +11,9 @@ export type PackedMuting = SchemaType<typeof packedMutingSchema>;
 export class MutingRepository extends Repository<Muting> {
 	public async pack(
 		src: Muting['id'] | Muting,
-		me?: any
+		me?: { id: User['id'] } | null | undefined
 	): Promise<PackedMuting> {
-		const muting = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const muting = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		return await awaitAll({
 			id: muting.id,
@@ -27,39 +27,36 @@ export class MutingRepository extends Repository<Muting> {
 
 	public packMany(
 		mutings: any[],
-		me: any
+		me: { id: User['id'] }
 	) {
 		return Promise.all(mutings.map(x => this.pack(x, me)));
 	}
 }
 
 export const packedMutingSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
-			description: 'The unique identifier for this muting.',
 			example: 'xxxxxxxxxx',
 		},
 		createdAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
-			description: 'The date that the muting was created.'
 		},
 		muteeId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		mutee: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'User',
-			description: 'The mutee.'
 		},
 	}
 };

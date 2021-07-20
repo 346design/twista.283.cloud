@@ -1,10 +1,10 @@
 // AID
 // 長さ8の[2000年1月1日からの経過ミリ秒をbase36でエンコードしたもの] + 長さ2の[ノイズ文字列]
 
-import * as cluster from 'cluster';
+import * as crypto from 'crypto';
 
 const TIME2000 = 946684800000;
-let counter = process.pid + (cluster.isMaster ? 0 : cluster.worker.id);
+let counter = crypto.randomBytes(2).readUInt16LE(0);
 
 function getTime(time: number) {
 	time = time - TIME2000;
@@ -18,6 +18,8 @@ function getNoise() {
 }
 
 export function genAid(date: Date): string {
+	const t = date.getTime();
+	if (isNaN(t)) throw 'Failed to create AID: Invalid Date';
 	counter++;
-	return getTime(date.getTime()) + getNoise();
+	return getTime(t) + getNoise();
 }

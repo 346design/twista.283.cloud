@@ -1,16 +1,15 @@
-import rndstr from 'rndstr';
 import * as crypto from 'crypto';
 import $ from 'cafy';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { AuthSessions, AccessTokens, Apps } from '../../../../models';
-import { genId } from '../../../../misc/gen-id';
-import { ensure } from '../../../../prelude/ensure';
+import { genId } from '@/misc/gen-id';
+import { secureRndstr } from '@/misc/secure-rndstr';
 
 export const meta = {
 	tags: ['auth'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	secure: true,
 
@@ -39,7 +38,7 @@ export default define(meta, async (ps, user) => {
 	}
 
 	// Generate access token
-	const accessToken = rndstr('a-zA-Z0-9', 32);
+	const accessToken = secureRndstr(32, true);
 
 	// Fetch exist access token
 	const exist = await AccessTokens.findOne({
@@ -49,17 +48,20 @@ export default define(meta, async (ps, user) => {
 
 	if (exist == null) {
 		// Lookup app
-		const app = await Apps.findOne(session.appId).then(ensure);
+		const app = await Apps.findOneOrFail(session.appId);
 
 		// Generate Hash
 		const sha256 = crypto.createHash('sha256');
 		sha256.update(accessToken + app.secret);
 		const hash = sha256.digest('hex');
 
+		const now = new Date();
+
 		// Insert access token doc
-		await AccessTokens.save({
+		await AccessTokens.insert({
 			id: genId(),
-			createdAt: new Date(),
+			createdAt: now,
+			lastUsedAt: now,
 			appId: session.appId,
 			userId: user.id,
 			token: accessToken,

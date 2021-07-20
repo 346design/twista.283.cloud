@@ -1,23 +1,17 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import read from '../../../../services/note/read';
 import { Notes, Followings } from '../../../../models';
 import { generateVisibilityQuery } from '../../common/generate-visibility-query';
-import { generateMuteQuery } from '../../common/generate-mute-query';
+import { generateMutedUserQuery } from '../../common/generate-muted-user-query';
 import { makePaginationQuery } from '../../common/make-pagination-query';
 import { Brackets } from 'typeorm';
-import { types, bool } from '../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': '自分に言及している投稿の一覧を取得します。',
-		'en-US': 'Get mentions of myself.'
-	},
-
 	tags: ['notes'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	params: {
 		following: {
@@ -44,11 +38,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'Note',
 		}
 	},
@@ -61,13 +55,17 @@ export default define(meta, async (ps, user) => {
 
 	const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId)
 		.andWhere(new Brackets(qb => { qb
-			.where(`:meId = ANY(note.mentions)`, { meId: user.id })
-			.orWhere(`:meId = ANY(note.visibleUserIds)`, { meId: user.id });
+			.where(`'{"${user.id}"}' <@ note.mentions`)
+			.orWhere(`'{"${user.id}"}' <@ note.visibleUserIds`);
 		}))
-		.leftJoinAndSelect('note.user', 'user');
+		.innerJoinAndSelect('note.user', 'user')
+		.leftJoinAndSelect('note.reply', 'reply')
+		.leftJoinAndSelect('note.renote', 'renote')
+		.leftJoinAndSelect('reply.user', 'replyUser')
+		.leftJoinAndSelect('renote.user', 'renoteUser');
 
 	generateVisibilityQuery(query, user);
-	generateMuteQuery(query, user);
+	generateMutedUserQuery(query, user);
 
 	if (ps.visibility) {
 		query.andWhere('note.visibility = :visibility', { visibility: ps.visibility });
@@ -80,9 +78,7 @@ export default define(meta, async (ps, user) => {
 
 	const mentions = await query.take(ps.limit!).getMany();
 
-	for (const note of mentions) {
-		read(user.id, note.id);
-	}
+	read(user.id, mentions);
 
 	return await Notes.packMany(mentions, user);
 });

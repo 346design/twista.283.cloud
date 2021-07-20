@@ -1,21 +1,20 @@
 import * as Koa from 'koa';
-import * as Router from 'koa-router';
-import * as uuid from 'uuid';
+import * as Router from '@koa/router';
+import { v4 as uuid } from 'uuid';
 import autwh from 'autwh';
-import redis from '../../../db/redis';
+import { redisClient } from '../../../db/redis';
 import { publishMainStream } from '../../../services/stream';
-import config from '../../../config';
+import config from '@/config';
 import signin from '../common/signin';
-import { fetchMeta } from '../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 import { Users, UserProfiles } from '../../../models';
 import { ILocalUser } from '../../../models/entities/user';
-import { ensure } from '../../../prelude/ensure';
 
-function getUserToken(ctx: Koa.BaseContext) {
-	return ((ctx.headers['cookie'] || '').match(/i=(\w+)/) || [null, null])[1];
+function getUserToken(ctx: Koa.Context) {
+	return ((ctx.headers['cookie'] || '').match(/igi=(\w+)/) || [null, null])[1];
 }
 
-function compareOrigin(ctx: Koa.BaseContext) {
+function compareOrigin(ctx: Koa.Context) {
 	function normalizeUrl(url: string) {
 		return url.endsWith('/') ? url.substr(0, url.length - 1) : url;
 	}
@@ -40,19 +39,17 @@ router.get('/disconnect/twitter', async ctx => {
 		return;
 	}
 
-	const user = await Users.findOne({
+	const user = await Users.findOneOrFail({
 		host: null,
 		token: userToken
-	}).then(ensure);
+	});
 
-	await UserProfiles.update({
-		userId: user.id
-	}, {
-		twitter: false,
-		twitterAccessToken: null,
-		twitterAccessTokenSecret: null,
-		twitterUserId: null,
-		twitterScreenName: null,
+	const profile = await UserProfiles.findOneOrFail(user.id);
+
+	delete profile.integrations.twitter;
+
+	await UserProfiles.update(user.id, {
+		integrations: profile.integrations,
 	});
 
 	ctx.body = `Twitterの連携を解除しました :v:`;
@@ -92,7 +89,7 @@ router.get('/connect/twitter', async ctx => {
 
 	const twAuth = await getTwAuth();
 	const twCtx = await twAuth!.begin();
-	redis.set(userToken, JSON.stringify(twCtx));
+	redisClient.set(userToken, JSON.stringify(twCtx));
 	ctx.redirect(twCtx.url);
 });
 
@@ -102,16 +99,12 @@ router.get('/signin/twitter', async ctx => {
 
 	const sessid = uuid();
 
-	redis.set(sessid, JSON.stringify(twCtx));
+	redisClient.set(sessid, JSON.stringify(twCtx));
 
-	const expires = 1000 * 60 * 60; // 1h
-	ctx.cookies.set('signin_with_twitter_session_id', sessid, {
+	ctx.cookies.set('signin_with_twitter_sid', sessid, {
 		path: '/',
-		domain: config.host,
 		secure: config.url.startsWith('https'),
-		httpOnly: true,
-		expires: new Date(Date.now() + expires),
-		maxAge: expires
+		httpOnly: true
 	});
 
 	ctx.redirect(twCtx.url);
@@ -123,7 +116,7 @@ router.get('/tw/cb', async ctx => {
 	const twAuth = await getTwAuth();
 
 	if (userToken == null) {
-		const sessid = ctx.cookies.get('signin_with_twitter_session_id');
+		const sessid = ctx.cookies.get('signin_with_twitter_sid');
 
 		if (sessid == null) {
 			ctx.throw(400, 'invalid session');
@@ -131,7 +124,7 @@ router.get('/tw/cb', async ctx => {
 		}
 
 		const get = new Promise<any>((res, rej) => {
-			redis.get(sessid, async (_, twCtx) => {
+			redisClient.get(sessid, async (_, twCtx) => {
 				res(twCtx);
 			});
 		});
@@ -141,7 +134,7 @@ router.get('/tw/cb', async ctx => {
 		const result = await twAuth!.done(JSON.parse(twCtx), ctx.query.oauth_verifier);
 
 		const link = await UserProfiles.createQueryBuilder()
-			.where('"twitterUserId" = :id', { id: result.userId })
+			.where(`"integrations"->'twitter'->>'userId' = :id`, { id: result.userId })
 			.andWhere('"userHost" IS NULL')
 			.getOne();
 
@@ -160,7 +153,7 @@ router.get('/tw/cb', async ctx => {
 		}
 
 		const get = new Promise<any>((res, rej) => {
-			redis.get(userToken, async (_, twCtx) => {
+			redisClient.get(userToken, async (_, twCtx) => {
 				res(twCtx);
 			});
 		});
@@ -169,17 +162,23 @@ router.get('/tw/cb', async ctx => {
 
 		const result = await twAuth!.done(JSON.parse(twCtx), verifier);
 
-		const user = await Users.findOne({
+		const user = await Users.findOneOrFail({
 			host: null,
 			token: userToken
-		}).then(ensure);
+		});
 
-		await UserProfiles.update({ userId: user.id }, {
-			twitter: true,
-			twitterAccessToken: result.accessToken,
-			twitterAccessTokenSecret: result.accessTokenSecret,
-			twitterUserId: result.userId,
-			twitterScreenName: result.screenName,
+		const profile = await UserProfiles.findOneOrFail(user.id);
+
+		await UserProfiles.update(user.id, {
+			integrations: {
+				...profile.integrations,
+				twitter: {
+					accessToken: result.accessToken,
+					accessTokenSecret: result.accessTokenSecret,
+					userId: result.userId,
+					screenName: result.screenName,
+				}
+			},
 		});
 
 		ctx.body = `Twitter: @${result.screenName} を、Misskey: @${user.username} に接続しました！`;

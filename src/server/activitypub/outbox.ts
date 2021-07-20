@@ -1,7 +1,7 @@
-import * as Router from 'koa-router';
-import config from '../../config';
+import * as Router from '@koa/router';
+import config from '@/config';
 import $ from 'cafy';
-import { ID } from '../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import { renderActivity } from '../../remote/activitypub/renderer';
 import renderOrderedCollection from '../../remote/activitypub/renderer/ordered-collection';
 import renderOrderedCollectionPage from '../../remote/activitypub/renderer/ordered-collection-page';
@@ -15,9 +15,8 @@ import { Users, Notes } from '../../models';
 import { makePaginationQuery } from '../api/common/make-pagination-query';
 import { Brackets } from 'typeorm';
 import { Note } from '../../models/entities/note';
-import { ensure } from '../../prelude/ensure';
 
-export default async (ctx: Router.IRouterContext) => {
+export default async (ctx: Router.RouterContext) => {
 	const userId = ctx.params.user;
 
 	// Get 'sinceId' parameter
@@ -82,7 +81,6 @@ export default async (ctx: Router.IRouterContext) => {
 		);
 
 		ctx.body = renderActivity(rendered);
-		ctx.set('Cache-Control', 'private, max-age=0, must-revalidate');
 		setResponseType(ctx);
 	} else {
 		// index page
@@ -91,7 +89,7 @@ export default async (ctx: Router.IRouterContext) => {
 			`${partOf}?page=true&since_id=000000000000000000000000`
 		);
 		ctx.body = renderActivity(rendered);
-		ctx.set('Cache-Control', 'private, max-age=0, must-revalidate');
+		ctx.set('Cache-Control', 'public, max-age=180');
 		setResponseType(ctx);
 	}
 };
@@ -101,8 +99,8 @@ export default async (ctx: Router.IRouterContext) => {
  * @param note Note
  */
 export async function packActivity(note: Note): Promise<any> {
-	if (note.renoteId && note.text == null && !note.hasPoll && (note.fileIds == null || note.fileIds.length == 0)) {
-		const renote = await Notes.findOne(note.renoteId).then(ensure);
+	if (note.renoteId && note.text == null && !note.hasPoll && (note.fileIds == null || note.fileIds.length === 0)) {
+		const renote = await Notes.findOneOrFail(note.renoteId);
 		return renderAnnounce(renote.uri ? renote.uri : `${config.url}/notes/${renote.id}`, note);
 	}
 

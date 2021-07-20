@@ -1,4 +1,4 @@
-import * as Router from 'koa-router';
+import * as Router from '@koa/router';
 import * as json from 'koa-json-body';
 import * as httpSignature from 'http-signature';
 
@@ -11,23 +11,21 @@ import Outbox, { packActivity } from './activitypub/outbox';
 import Followers from './activitypub/followers';
 import Following from './activitypub/following';
 import Featured from './activitypub/featured';
-import renderQuestion from '../remote/activitypub/renderer/question';
 import { inbox as processInbox } from '../queue';
-import { isSelfHost } from '../misc/convert-host';
-import { Notes, Users, Emojis, UserKeypairs, Polls } from '../models';
+import { isSelfHost } from '@/misc/convert-host';
+import { Notes, Users, Emojis, NoteReactions } from '../models';
 import { ILocalUser, User } from '../models/entities/user';
 import { In } from 'typeorm';
-import { ensure } from '../prelude/ensure';
+import { renderLike } from '../remote/activitypub/renderer/like';
+import { getUserKeypair } from '@/misc/keypair-store';
 
 // Init router
 const router = new Router();
 
 //#region Routing
 
-function inbox(ctx: Router.IRouterContext) {
+function inbox(ctx: Router.RouterContext) {
 	let signature;
-
-	ctx.req.headers.authorization = `Signature ${ctx.req.headers.signature}`;
 
 	try {
 		signature = httpSignature.parseRequest(ctx.req, { 'headers': [] });
@@ -41,18 +39,21 @@ function inbox(ctx: Router.IRouterContext) {
 	ctx.status = 202;
 }
 
-function isActivityPubReq(ctx: Router.IRouterContext) {
+const ACTIVITY_JSON = 'application/activity+json; charset=utf-8';
+const LD_JSON = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"; charset=utf-8';
+
+function isActivityPubReq(ctx: Router.RouterContext) {
 	ctx.response.vary('Accept');
-	const accepted = ctx.accepts('html', 'application/activity+json', 'application/ld+json');
-	return ['application/activity+json', 'application/ld+json'].includes(accepted as string);
+	const accepted = ctx.accepts('html', ACTIVITY_JSON, LD_JSON);
+	return typeof accepted === 'string' && !accepted.match(/html/);
 }
 
-export function setResponseType(ctx: Router.IRouterContext) {
-	const accpet = ctx.accepts('application/activity+json', 'application/ld+json');
-	if (accpet === 'application/ld+json') {
-		ctx.response.type = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"; charset=utf-8';
+export function setResponseType(ctx: Router.RouterContext) {
+	const accept = ctx.accepts(ACTIVITY_JSON, LD_JSON);
+	if (accept === LD_JSON) {
+		ctx.response.type = LD_JSON;
 	} else {
-		ctx.response.type = 'application/activity+json; charset=utf-8';
+		ctx.response.type = ACTIVITY_JSON;
 	}
 }
 
@@ -109,28 +110,6 @@ router.get('/notes/:note/activity', async ctx => {
 	setResponseType(ctx);
 });
 
-// question
-router.get('/questions/:question', async (ctx, next) => {
-	const pollNote = await Notes.findOne({
-		id: ctx.params.question,
-		userHost: null,
-		visibility: In(['public', 'home']),
-		localOnly: false,
-		hasPoll: true
-	});
-
-	if (pollNote == null) {
-		ctx.status = 404;
-		return;
-	}
-
-	const user = await Users.findOne(pollNote.userId).then(ensure);
-	const poll = await Polls.findOne({ noteId: pollNote.id }).then(ensure);
-
-	ctx.body = renderActivity(await renderQuestion(user as ILocalUser, pollNote, poll));
-	setResponseType(ctx);
-});
-
 // outbox
 router.get('/users/:user/outbox', Outbox);
 
@@ -157,7 +136,7 @@ router.get('/users/:user/publickey', async ctx => {
 		return;
 	}
 
-	const keypair = await UserKeypairs.findOne(user.id).then(ensure);
+	const keypair = await getUserKeypair(user.id);
 
 	if (Users.isLocalUser(user)) {
 		ctx.body = renderActivity(renderKey(user, keypair));
@@ -169,7 +148,7 @@ router.get('/users/:user/publickey', async ctx => {
 });
 
 // user
-async function userInfo(ctx: Router.IRouterContext, user: User) {
+async function userInfo(ctx: Router.RouterContext, user: User | undefined) {
 	if (user == null) {
 		ctx.status = 404;
 		return;
@@ -187,8 +166,9 @@ router.get('/users/:user', async (ctx, next) => {
 
 	const user = await Users.findOne({
 		id: userId,
-		host: null
-	}).then(ensure);
+		host: null,
+		isSuspended: false
+	});
 
 	await userInfo(ctx, user);
 });
@@ -198,8 +178,9 @@ router.get('/@:user', async (ctx, next) => {
 
 	const user = await Users.findOne({
 		usernameLower: ctx.params.user.toLowerCase(),
-		host: null
-	}).then(ensure);
+		host: null,
+		isSuspended: false
+	});
 
 	await userInfo(ctx, user);
 });
@@ -218,6 +199,27 @@ router.get('/emojis/:emoji', async ctx => {
 	}
 
 	ctx.body = renderActivity(await renderEmoji(emoji));
+	ctx.set('Cache-Control', 'public, max-age=180');
+	setResponseType(ctx);
+});
+
+// like
+router.get('/likes/:like', async ctx => {
+	const reaction = await NoteReactions.findOne(ctx.params.like);
+
+	if (reaction == null) {
+		ctx.status = 404;
+		return;
+	}
+
+	const note = await Notes.findOne(reaction.noteId);
+
+	if (note == null) {
+		ctx.status = 404;
+		return;
+	}
+
+	ctx.body = renderActivity(await renderLike(reaction, note));
 	ctx.set('Cache-Control', 'public, max-age=180');
 	setResponseType(ctx);
 });

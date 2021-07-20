@@ -1,33 +1,26 @@
 import define from '../define';
 import { Users } from '../../../models';
-import { types, bool } from '../../../misc/schema';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '自分のアカウント情報を取得します。'
-	},
-
 	tags: ['account'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	params: {},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'User',
 	},
 };
 
-export default define(meta, async (ps, user, app) => {
-	const isSecure = user != null && app == null;
+export default define(meta, async (ps, user, token) => {
+	const isSecure = token == null;
 
-	return await Users.pack(user, user, {
+	// ここで渡ってきている user はキャッシュされていて古い可能性もあるので id だけ渡す
+	return await Users.pack(user.id, user, {
 		detail: true,
-		includeHasUnreadNotes: true,
 		includeSecrets: isSecure
 	});
 });

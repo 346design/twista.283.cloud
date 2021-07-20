@@ -1,20 +1,14 @@
 import $ from 'cafy';
 import define from '../../../define';
 import { UserGroups, UserGroupJoinings } from '../../../../../models';
-import { genId } from '../../../../../misc/gen-id';
+import { genId } from '@/misc/gen-id';
 import { UserGroup } from '../../../../../models/entities/user-group';
-import { types, bool } from '../../../../../misc/schema';
 import { UserGroupJoining } from '../../../../../models/entities/user-group-joining';
 
 export const meta = {
-	desc: {
-		'ja-JP': 'ユーザーグループを作成します。',
-		'en-US': 'Create a user group.'
-	},
-
 	tags: ['groups'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:user-groups',
 
@@ -25,22 +19,22 @@ export const meta = {
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'UserGroup',
 	},
 };
 
 export default define(meta, async (ps, user) => {
-	const userGroup = await UserGroups.save({
+	const userGroup = await UserGroups.insert({
 		id: genId(),
 		createdAt: new Date(),
 		userId: user.id,
 		name: ps.name,
-	} as UserGroup);
+	} as UserGroup).then(x => UserGroups.findOneOrFail(x.identifiers[0]));
 
 	// Push the owner
-	await UserGroupJoinings.save({
+	await UserGroupJoinings.insert({
 		id: genId(),
 		createdAt: new Date(),
 		userId: user.id,

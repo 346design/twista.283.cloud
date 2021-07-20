@@ -1,36 +1,29 @@
-import { types, bool } from '../../../../misc/schema';
-
 /**
  * ネットワークに関するチャート
  */
 export const schema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		incomingRequests: {
-			type: types.number,
-			optional: bool.false, nullable: bool.false,
-			description: '受信したリクエスト数'
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
 		},
 		outgoingRequests: {
-			type: types.number,
-			optional: bool.false, nullable: bool.false,
-			description: '送信したリクエスト数'
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
 		},
-		totalTime: {
-			type: types.number,
-			optional: bool.false, nullable: bool.false,
-			description: '応答時間の合計' // TIP: (totalTime / incomingRequests) でひとつのリクエストに平均でどれくらいの時間がかかったか知れる
+		totalTime: { // TIP: (totalTime / incomingRequests) でひとつのリクエストに平均でどれくらいの時間がかかったか知れる
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
 		},
 		incomingBytes: {
-			type: types.number,
-			optional: bool.false, nullable: bool.false,
-			description: '合計受信データ量'
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
 		},
 		outgoingBytes: {
-			type: types.number,
-			optional: bool.false, nullable: bool.false,
-			description: '合計送信データ量'
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
 		},
 	}
 };

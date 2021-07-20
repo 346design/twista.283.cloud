@@ -1,46 +1,41 @@
-import { types, bool } from '../../../../misc/schema';
-
 const logSchema = {
 	/**
 	 * 集計期間時点での、全ユーザー数
 	 */
 	total: {
-		type: types.number,
-		optional: bool.false, nullable: bool.false,
-		description: '集計期間時点での、全ユーザー数'
+		type: 'number' as const,
+		optional: false as const, nullable: false as const,
 	},
 
 	/**
 	 * 増加したユーザー数
 	 */
 	inc: {
-		type: types.number,
-		optional: bool.false, nullable: bool.false,
-		description: '増加したユーザー数'
+		type: 'number' as const,
+		optional: false as const, nullable: false as const,
 	},
 
 	/**
 	 * 減少したユーザー数
 	 */
 	dec: {
-		type: types.number,
-		optional: bool.false, nullable: bool.false,
-		description: '減少したユーザー数'
+		type: 'number' as const,
+		optional: false as const, nullable: false as const,
 	},
 };
 
 export const schema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		local: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 		remote: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			properties: logSchema
 		},
 	}

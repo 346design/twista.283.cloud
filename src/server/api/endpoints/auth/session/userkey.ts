@@ -2,47 +2,35 @@ import $ from 'cafy';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { Apps, AuthSessions, AccessTokens, Users } from '../../../../../models';
-import { ensure } from '../../../../../prelude/ensure';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
 	tags: ['auth'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		appSecret: {
 			validator: $.str,
-			desc: {
-				'ja-JP': 'アプリケーションのシークレットキー',
-				'en-US': 'The secret key of your application.'
-			}
 		},
 
 		token: {
 			validator: $.str,
-			desc: {
-				'ja-JP': 'セッションのトークン',
-				'en-US': 'The token of a session.'
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		properties: {
 			accessToken: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
-				description: 'ユーザーのアクセストークン',
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
 			},
 
 			user: {
-				type: types.object,
-				optional: bool.false, nullable: bool.false,
+				type: 'object' as const,
+				optional: false as const, nullable: false as const,
 				ref: 'User',
-				description: '認証したユーザー'
 			},
 		}
 	},
@@ -93,10 +81,10 @@ export default define(meta, async (ps) => {
 	}
 
 	// Lookup access token
-	const accessToken = await AccessTokens.findOne({
+	const accessToken = await AccessTokens.findOneOrFail({
 		appId: app.id,
 		userId: session.userId
-	}).then(ensure);
+	});
 
 	// Delete session
 	AuthSessions.delete(session.id);

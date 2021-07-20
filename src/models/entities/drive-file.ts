@@ -4,6 +4,7 @@ import { DriveFolder } from './drive-folder';
 import { id } from '../id';
 
 @Entity()
+@Index(['userId', 'folderId', 'id'])
 export class DriveFile {
 	@PrimaryColumn(id())
 	public id: string;
@@ -66,12 +67,19 @@ export class DriveFile {
 	})
 	public comment: string | null;
 
+	@Column('varchar', {
+		length: 128, nullable: true,
+		comment: 'The BlurHash string.'
+	})
+	public blurhash: string | null;
+
 	@Column('jsonb', {
 		default: {},
 		comment: 'The any properties of the DriveFile. For example, it includes image width/height.'
 	})
-	public properties: Record<string, any>;
+	public properties: { width?: number; height?: number; avgColor?: string };
 
+	@Index()
 	@Column('boolean')
 	public storedInternal: boolean;
 
@@ -137,6 +145,7 @@ export class DriveFile {
 	@JoinColumn()
 	public folder: DriveFolder | null;
 
+	@Index()
 	@Column('boolean', {
 		default: false,
 		comment: 'Whether the DriveFile is NSFW.'
@@ -146,6 +155,7 @@ export class DriveFile {
 	/**
 	 * 外部の(信頼されていない)URLへの直リンクか否か
 	 */
+	@Index()
 	@Column('boolean', {
 		default: false,
 		comment: 'Whether the DriveFile is direct link to remote server.'

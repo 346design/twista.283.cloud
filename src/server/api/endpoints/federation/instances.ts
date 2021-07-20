@@ -1,14 +1,19 @@
 import $ from 'cafy';
+import config from '@/config';
 import define from '../../define';
 import { Instances } from '../../../../models';
-import { fetchMeta } from '../../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 
 export const meta = {
 	tags: ['federation'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
+		host: {
+			validator: $.optional.nullable.str,
+		},
+
 		blocked: {
 			validator: $.optional.nullable.bool,
 		},
@@ -17,7 +22,19 @@ export const meta = {
 			validator: $.optional.nullable.bool,
 		},
 
-		markedAsClosed: {
+		suspended: {
+			validator: $.optional.nullable.bool,
+		},
+
+		federating: {
+			validator: $.optional.nullable.bool,
+		},
+
+		subscribing: {
+			validator: $.optional.nullable.bool,
+		},
+
+		publishing: {
 			validator: $.optional.nullable.bool,
 		},
 
@@ -34,6 +51,16 @@ export const meta = {
 		sort: {
 			validator: $.optional.str,
 		}
+	},
+
+	res: {
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
+		items: {
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
+			ref: 'FederationInstance'
+		}
 	}
 };
 
@@ -41,14 +68,16 @@ export default define(meta, async (ps, me) => {
 	const query = Instances.createQueryBuilder('instance');
 
 	switch (ps.sort) {
+		case '+pubSub': query.orderBy('instance.followingCount', 'DESC').orderBy('instance.followersCount', 'DESC'); break;
+		case '-pubSub': query.orderBy('instance.followingCount', 'ASC').orderBy('instance.followersCount', 'ASC'); break;
 		case '+notes': query.orderBy('instance.notesCount', 'DESC'); break;
 		case '-notes': query.orderBy('instance.notesCount', 'ASC'); break;
-		case '+usersCount': query.orderBy('instance.usersCount', 'DESC'); break;
-		case '-usersCount': query.orderBy('instance.usersCount', 'ASC'); break;
-		case '+followingCount': query.orderBy('instance.followingCount', 'DESC'); break;
-		case '-followingCount': query.orderBy('instance.followingCount', 'ASC'); break;
-		case '+followersCount': query.orderBy('instance.followersCount', 'DESC'); break;
-		case '-followersCount': query.orderBy('instance.followersCount', 'ASC'); break;
+		case '+users': query.orderBy('instance.usersCount', 'DESC'); break;
+		case '-users': query.orderBy('instance.usersCount', 'ASC'); break;
+		case '+following': query.orderBy('instance.followingCount', 'DESC'); break;
+		case '-following': query.orderBy('instance.followingCount', 'ASC'); break;
+		case '+followers': query.orderBy('instance.followersCount', 'DESC'); break;
+		case '-followers': query.orderBy('instance.followersCount', 'ASC'); break;
 		case '+caughtAt': query.orderBy('instance.caughtAt', 'DESC'); break;
 		case '-caughtAt': query.orderBy('instance.caughtAt', 'ASC'); break;
 		case '+lastCommunicatedAt': query.orderBy('instance.lastCommunicatedAt', 'DESC'); break;
@@ -78,12 +107,40 @@ export default define(meta, async (ps, me) => {
 		}
 	}
 
-	if (typeof ps.markedAsClosed === 'boolean') {
-		if (ps.markedAsClosed) {
-			query.andWhere('instance.isMarkedAsClosed = TRUE');
+	if (typeof ps.suspended === 'boolean') {
+		if (ps.suspended) {
+			query.andWhere('instance.isSuspended = TRUE');
 		} else {
-			query.andWhere('instance.isMarkedAsClosed = FALSE');
+			query.andWhere('instance.isSuspended = FALSE');
 		}
+	}
+
+	if (typeof ps.federating === 'boolean') {
+		if (ps.federating) {
+			query.andWhere('((instance.followingCount > 0) OR (instance.followersCount > 0))');
+		} else {
+			query.andWhere('((instance.followingCount = 0) AND (instance.followersCount = 0))');
+		}
+	}
+
+	if (typeof ps.subscribing === 'boolean') {
+		if (ps.subscribing) {
+			query.andWhere('instance.followersCount > 0');
+		} else {
+			query.andWhere('instance.followersCount = 0');
+		}
+	}
+
+	if (typeof ps.publishing === 'boolean') {
+		if (ps.publishing) {
+			query.andWhere('instance.followingCount > 0');
+		} else {
+			query.andWhere('instance.followingCount = 0');
+		}
+	}
+
+	if (ps.host) {
+		query.andWhere('instance.host like :host', { host: '%' + ps.host.toLowerCase() + '%' });
 	}
 
 	const instances = await query.take(ps.limit!).skip(ps.offset).getMany();

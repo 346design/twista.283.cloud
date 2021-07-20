@@ -1,11 +1,11 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { Signins } from '../../../../models';
 import { makePaginationQuery } from '../../common/make-pagination-query';
 
 export const meta = {
-	requireCredential: true,
+	requireCredential: true as const,
 
 	secure: true,
 

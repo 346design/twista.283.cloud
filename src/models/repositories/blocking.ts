@@ -1,9 +1,9 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Users } from '..';
 import { Blocking } from '../entities/blocking';
-import { ensure } from '../../prelude/ensure';
 import { awaitAll } from '../../prelude/await-all';
-import { SchemaType, types, bool } from '../../misc/schema';
+import { SchemaType } from '@/misc/schema';
+import { User } from '../entities/user';
 
 export type PackedBlocking = SchemaType<typeof packedBlockingSchema>;
 
@@ -11,9 +11,9 @@ export type PackedBlocking = SchemaType<typeof packedBlockingSchema>;
 export class BlockingRepository extends Repository<Blocking> {
 	public async pack(
 		src: Blocking['id'] | Blocking,
-		me?: any
+		me?: { id: User['id'] } | null | undefined
 	): Promise<PackedBlocking> {
-		const blocking = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const blocking = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		return await awaitAll({
 			id: blocking.id,
@@ -27,39 +27,36 @@ export class BlockingRepository extends Repository<Blocking> {
 
 	public packMany(
 		blockings: any[],
-		me: any
+		me: { id: User['id'] }
 	) {
 		return Promise.all(blockings.map(x => this.pack(x, me)));
 	}
 }
 
 export const packedBlockingSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
-			description: 'The unique identifier for this blocking.',
 			example: 'xxxxxxxxxx',
 		},
 		createdAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
-			description: 'The date that the blocking was created.'
 		},
 		blockeeId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		blockee: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'User',
-			description: 'The blockee.'
 		},
 	}
 };

@@ -1,22 +1,21 @@
 import * as Koa from 'koa';
-import * as Router from 'koa-router';
-import * as request from 'request';
+import * as Router from '@koa/router';
+import { getJson } from '@/misc/fetch';
 import { OAuth2 } from 'oauth';
-import config from '../../../config';
+import config from '@/config';
 import { publishMainStream } from '../../../services/stream';
-import redis from '../../../db/redis';
-import * as uuid from 'uuid';
+import { redisClient } from '../../../db/redis';
+import { v4 as uuid } from 'uuid';
 import signin from '../common/signin';
-import { fetchMeta } from '../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 import { Users, UserProfiles } from '../../../models';
 import { ILocalUser } from '../../../models/entities/user';
-import { ensure } from '../../../prelude/ensure';
 
-function getUserToken(ctx: Koa.BaseContext) {
-	return ((ctx.headers['cookie'] || '').match(/i=(\w+)/) || [null, null])[1];
+function getUserToken(ctx: Koa.Context) {
+	return ((ctx.headers['cookie'] || '').match(/igi=(\w+)/) || [null, null])[1];
 }
 
-function compareOrigin(ctx: Koa.BaseContext) {
+function compareOrigin(ctx: Koa.Context) {
 	function normalizeUrl(url: string) {
 		return url ? url.endsWith('/') ? url.substr(0, url.length - 1) : url : '';
 	}
@@ -41,21 +40,17 @@ router.get('/disconnect/discord', async ctx => {
 		return;
 	}
 
-	const user = await Users.findOne({
+	const user = await Users.findOneOrFail({
 		host: null,
 		token: userToken
-	}).then(ensure);
+	});
 
-	await UserProfiles.update({
-		userId: user.id
-	}, {
-		discord: false,
-		discordAccessToken: null,
-		discordRefreshToken: null,
-		discordExpiresDate: null,
-		discordId: null,
-		discordUsername: null,
-		discordDiscriminator: null,
+	const profile = await UserProfiles.findOneOrFail(user.id);
+
+	delete profile.integrations.discord;
+
+	await UserProfiles.update(user.id, {
+		integrations: profile.integrations,
 	});
 
 	ctx.body = `Discordの連携を解除しました :v:`;
@@ -74,7 +69,7 @@ async function getOAuth2() {
 		return new OAuth2(
 			meta.discordClientId!,
 			meta.discordClientSecret!,
-			'https://discordapp.com/',
+			'https://discord.com/',
 			'api/oauth2/authorize',
 			'api/oauth2/token');
 	} else {
@@ -101,7 +96,7 @@ router.get('/connect/discord', async ctx => {
 		response_type: 'code'
 	};
 
-	redis.set(userToken, JSON.stringify(params));
+	redisClient.set(userToken, JSON.stringify(params));
 
 	const oauth2 = await getOAuth2();
 	ctx.redirect(oauth2!.getAuthorizeUrl(params));
@@ -117,17 +112,13 @@ router.get('/signin/discord', async ctx => {
 		response_type: 'code'
 	};
 
-	const expires = 1000 * 60 * 60; // 1h
-	ctx.cookies.set('signin_with_discord_session_id', sessid, {
+	ctx.cookies.set('signin_with_discord_sid', sessid, {
 		path: '/',
-		domain: config.host,
 		secure: config.url.startsWith('https'),
-		httpOnly: true,
-		expires: new Date(Date.now() + expires),
-		maxAge: expires
+		httpOnly: true
 	});
 
-	redis.set(sessid, JSON.stringify(params));
+	redisClient.set(sessid, JSON.stringify(params));
 
 	const oauth2 = await getOAuth2();
 	ctx.redirect(oauth2!.getAuthorizeUrl(params));
@@ -139,7 +130,7 @@ router.get('/dc/cb', async ctx => {
 	const oauth2 = await getOAuth2();
 
 	if (!userToken) {
-		const sessid = ctx.cookies.get('signin_with_discord_session_id');
+		const sessid = ctx.cookies.get('signin_with_discord_sid');
 
 		if (!sessid) {
 			ctx.throw(400, 'invalid session');
@@ -154,7 +145,7 @@ router.get('/dc/cb', async ctx => {
 		}
 
 		const { redirect_uri, state } = await new Promise<any>((res, rej) => {
-			redis.get(sessid, async (_, state) => {
+			redisClient.get(sessid, async (_, state) => {
 				res(JSON.parse(state));
 			});
 		});
@@ -182,20 +173,9 @@ router.get('/dc/cb', async ctx => {
 				}
 			}));
 
-		const { id, username, discriminator } = await new Promise<any>((res, rej) =>
-			request({
-				url: 'https://discordapp.com/api/users/@me',
-				headers: {
-					'Authorization': `Bearer ${accessToken}`,
-					'User-Agent': config.userAgent
-				}
-			}, (err, response, body) => {
-				if (err) {
-					rej(err);
-				} else {
-					res(JSON.parse(body));
-				}
-			}));
+		const { id, username, discriminator } = await getJson('https://discord.com/api/users/@me', '*/*', 10 * 1000, {
+			'Authorization': `Bearer ${accessToken}`,
+		});
 
 		if (!id || !username || !discriminator) {
 			ctx.throw(400, 'invalid session');
@@ -203,7 +183,7 @@ router.get('/dc/cb', async ctx => {
 		}
 
 		const profile = await UserProfiles.createQueryBuilder()
-			.where('"discordId" = :id', { id: id })
+			.where(`"integrations"->'discord'->>'id' = :id`, { id: id })
 			.andWhere('"userHost" IS NULL')
 			.getOne();
 
@@ -212,13 +192,18 @@ router.get('/dc/cb', async ctx => {
 			return;
 		}
 
-		await UserProfiles.update({ userId: profile.userId }, {
-			discord: true,
-			discordAccessToken: accessToken,
-			discordRefreshToken: refreshToken,
-			discordExpiresDate: expiresDate,
-			discordUsername: username,
-			discordDiscriminator: discriminator
+		await UserProfiles.update(profile.userId, {
+			integrations: {
+				...profile.integrations,
+				discord: {
+					id: id,
+					accessToken: accessToken,
+					refreshToken: refreshToken,
+					expiresDate: expiresDate,
+					username: username,
+					discriminator: discriminator
+				}
+			},
 		});
 
 		signin(ctx, await Users.findOne(profile.userId) as ILocalUser, true);
@@ -231,7 +216,7 @@ router.get('/dc/cb', async ctx => {
 		}
 
 		const { redirect_uri, state } = await new Promise<any>((res, rej) => {
-			redis.get(userToken, async (_, state) => {
+			redisClient.get(userToken, async (_, state) => {
 				res(JSON.parse(state));
 			});
 		});
@@ -259,39 +244,33 @@ router.get('/dc/cb', async ctx => {
 				}
 			}));
 
-		const { id, username, discriminator } = await new Promise<any>((res, rej) =>
-			request({
-				url: 'https://discordapp.com/api/users/@me',
-				headers: {
-					'Authorization': `Bearer ${accessToken}`,
-					'User-Agent': config.userAgent
-				}
-			}, (err, response, body) => {
-				if (err) {
-					rej(err);
-				} else {
-					res(JSON.parse(body));
-				}
-			}));
-
+		const { id, username, discriminator } = await getJson('https://discord.com/api/users/@me', '*/*', 10 * 1000, {
+			'Authorization': `Bearer ${accessToken}`,
+		});
 		if (!id || !username || !discriminator) {
 			ctx.throw(400, 'invalid session');
 			return;
 		}
 
-		const user = await Users.findOne({
+		const user = await Users.findOneOrFail({
 			host: null,
 			token: userToken
-		}).then(ensure);
+		});
 
-		await UserProfiles.update({ userId: user.id }, {
-			discord: true,
-			discordAccessToken: accessToken,
-			discordRefreshToken: refreshToken,
-			discordExpiresDate: expiresDate,
-			discordId: id,
-			discordUsername: username,
-			discordDiscriminator: discriminator
+		const profile = await UserProfiles.findOneOrFail(user.id);
+
+		await UserProfiles.update(user.id, {
+			integrations: {
+				...profile.integrations,
+				discord: {
+					accessToken: accessToken,
+					refreshToken: refreshToken,
+					expiresDate: expiresDate,
+					id: id,
+					username: username,
+					discriminator: discriminator
+				}
+			}
 		});
 
 		ctx.body = `Discord: @${username}#${discriminator} を、Misskey: @${user.username} に接続しました！`;

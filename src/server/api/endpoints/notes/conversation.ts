@@ -1,29 +1,19 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { getNote } from '../../common/getters';
 import { Note } from '../../../../models/entities/note';
 import { Notes } from '../../../../models';
-import { types, bool } from '../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定した投稿の文脈を取得します。',
-		'en-US': 'Show conversation of a note.'
-	},
-
 	tags: ['notes'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		noteId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象の投稿のID',
-				'en-US': 'Target note ID'
-			}
 		},
 
 		limit: {
@@ -38,11 +28,11 @@ export const meta = {
 	},
 
 	res: {
-		type: types.array,
-		optional: bool.false, nullable: bool.false,
+		type: 'array' as const,
+		optional: false as const, nullable: false as const,
 		items: {
-			type: types.object,
-			optional: bool.false, nullable: bool.false,
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
 			ref: 'Note',
 		}
 	},

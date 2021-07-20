@@ -1,7 +1,7 @@
 import autobind from 'autobind-decorator';
 import Channel from '../channel';
-import { Notes, UserListJoinings } from '../../../../models';
-import shouldMuteThisNote from '../../../../misc/should-mute-this-note';
+import { Notes, UserListJoinings, UserLists } from '../../../../models';
+import { isMutedUserRelated } from '@/misc/is-muted-user-related';
 import { User } from '../../../../models/entities/user';
 import { PackedNote } from '../../../../models/repositories/note';
 
@@ -16,6 +16,13 @@ export default class extends Channel {
 	@autobind
 	public async init(params: any) {
 		this.listId = params.listId as string;
+
+		// Check existence and owner
+		const list = await UserLists.findOne({
+			id: this.listId,
+			userId: this.user!.id
+		});
+		if (!list) return;
 
 		// Subscribe stream
 		this.subscriber.on(`userListStream:${this.listId}`, this.send);
@@ -66,7 +73,7 @@ export default class extends Channel {
 		}
 
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
-		if (shouldMuteThisNote(note, this.muting)) return;
+		if (isMutedUserRelated(note, this.muting)) return;
 
 		this.send('note', note);
 	}

@@ -1,5 +1,5 @@
 import * as cluster from 'cluster';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import Xev from 'xev';
 
 import Logger from '../services/logger';
@@ -66,7 +66,9 @@ if (!program.quiet) {
 
 // Display detail of uncaught exception
 process.on('uncaughtException', err => {
-	logger.error(err);
+	try {
+		logger.error(err);
+	} catch { }
 });
 
 // Dying away...

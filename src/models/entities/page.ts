@@ -40,6 +40,11 @@ export class Page {
 	@Column('boolean')
 	public alignCenter: boolean;
 
+	@Column('boolean', {
+		default: false
+	})
+	public hideTitleWhenPinned: boolean;
+
 	@Column('varchar', {
 		length: 32,
 	})
@@ -79,6 +84,12 @@ export class Page {
 		default: []
 	})
 	public variables: Record<string, any>[];
+
+	@Column('varchar', {
+		length: 16384,
+		default: ''
+	})
+	public script: string;
 
 	/**
 	 * public ... 公開

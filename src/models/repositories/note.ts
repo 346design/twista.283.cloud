@@ -1,12 +1,14 @@
 import { EntityRepository, Repository, In } from 'typeorm';
+import * as mfm from 'mfm-js';
 import { Note } from '../entities/note';
 import { User } from '../entities/user';
-import { unique, concat } from '../../prelude/array';
-import { nyaize } from '../../misc/nyaize';
-import { Emojis, Users, Apps, PollVotes, DriveFiles, NoteReactions, Followings, Polls } from '..';
-import { ensure } from '../../prelude/ensure';
-import { SchemaType, types, bool } from '../../misc/schema';
+import { Users, PollVotes, DriveFiles, NoteReactions, Followings, Polls, Channels } from '..';
+import { SchemaType } from '@/misc/schema';
+import { nyaize } from '@/misc/nyaize';
 import { awaitAll } from '../../prelude/await-all';
+import { convertLegacyReaction, convertLegacyReactions, decodeReaction } from '@/misc/reaction-lib';
+import { NoteReaction } from '../entities/note-reaction';
+import { aggregateNoteEmojis, populateEmojis, prefetchEmojis } from '@/misc/populate-emojis';
 
 export type PackedNote = SchemaType<typeof packedNoteSchema>;
 
@@ -38,7 +40,7 @@ export class NoteRepository extends Repository<Note> {
 		}
 
 		// visibility が followers かつ自分が投稿者のフォロワーでなかったら非表示
-		if (packedNote.visibility == 'followers') {
+		if (packedNote.visibility === 'followers') {
 			if (meId == null) {
 				hide = true;
 			} else if (meId === packedNote.userId) {
@@ -71,17 +73,19 @@ export class NoteRepository extends Repository<Note> {
 			packedNote.text = null;
 			packedNote.poll = undefined;
 			packedNote.cw = null;
-			packedNote.geo = undefined;
 			packedNote.isHidden = true;
 		}
 	}
 
 	public async pack(
 		src: Note['id'] | Note,
-		me?: User['id'] | User | null | undefined,
+		me?: { id: User['id'] } | null | undefined,
 		options?: {
 			detail?: boolean;
 			skipHide?: boolean;
+			_hint_?: {
+				myReactions: Map<Note['id'], NoteReaction | null>;
+			};
 		}
 	): Promise<PackedNote> {
 		const opts = Object.assign({
@@ -89,12 +93,12 @@ export class NoteRepository extends Repository<Note> {
 			skipHide: false
 		}, options);
 
-		const meId = me ? typeof me === 'string' ? me : me.id : null;
-		const note = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const meId = me ? me.id : null;
+		const note = typeof src === 'object' ? src : await this.findOneOrFail(src);
 		const host = note.userHost;
 
 		async function populatePoll() {
-			const poll = await Polls.findOne(note.id).then(ensure);
+			const poll = await Polls.findOneOrFail(note.id);
 			const choices = poll.choices.map(c => ({
 				text: c,
 				votes: poll.votes[poll.choices.indexOf(c)],
@@ -130,13 +134,23 @@ export class NoteRepository extends Repository<Note> {
 		}
 
 		async function populateMyReaction() {
+			if (options?._hint_?.myReactions) {
+				const reaction = options._hint_.myReactions.get(note.id);
+				if (reaction) {
+					return convertLegacyReaction(reaction.reaction);
+				} else if (reaction === null) {
+					return undefined;
+				}
+				// 実装上抜けがあるだけかもしれないので、「ヒントに含まれてなかったら(=undefinedなら)return」のようにはしない
+			}
+
 			const reaction = await NoteReactions.findOne({
 				userId: meId!,
 				noteId: note.id,
 			});
 
 			if (reaction) {
-				return reaction.reaction;
+				return convertLegacyReaction(reaction.reaction);
 			}
 
 			return undefined;
@@ -144,18 +158,25 @@ export class NoteRepository extends Repository<Note> {
 
 		let text = note.text;
 
-		if (note.name) {
-			text = `【${note.name}】\n${note.text}`;
+		if (note.name && (note.url || note.uri)) {
+			text = `【${note.name}】\n${(note.text || '').trim()}\n\n${note.url || note.uri}`;
 		}
 
-		const reactionEmojis = unique(concat([note.emojis, Object.keys(note.reactions)]));
+		const channel = note.channelId
+			? note.channel
+				? note.channel
+				: await Channels.findOne(note.channelId)
+			: null;
+
+		const reactionEmojiNames = Object.keys(note.reactions).filter(x => x?.startsWith(':')).map(x => decodeReaction(x).reaction).map(x => x.replace(/:/g, ''));
 
 		const packed = await awaitAll({
 			id: note.id,
 			createdAt: note.createdAt.toISOString(),
-			app: note.appId ? Apps.pack(note.appId) : undefined,
 			userId: note.userId,
-			user: Users.pack(note.user || note.userId, meId),
+			user: Users.pack(note.user || note.userId, me, {
+				detail: false,
+			}),
 			text: text,
 			cw: note.cw,
 			visibility: note.visibility,
@@ -164,25 +185,31 @@ export class NoteRepository extends Repository<Note> {
 			viaMobile: note.viaMobile || undefined,
 			renoteCount: note.renoteCount,
 			repliesCount: note.repliesCount,
-			reactions: note.reactions,
-			emojis: reactionEmojis.length > 0 ? Emojis.find({
-				name: In(reactionEmojis),
-				host: host
-			}) : [],
+			reactions: convertLegacyReactions(note.reactions),
+			tags: note.tags.length > 0 ? note.tags : undefined,
+			emojis: populateEmojis(note.emojis.concat(reactionEmojiNames), host),
 			fileIds: note.fileIds,
 			files: DriveFiles.packMany(note.fileIds),
 			replyId: note.replyId,
 			renoteId: note.renoteId,
+			channelId: note.channelId || undefined,
+			channel: channel ? {
+				id: channel.id,
+				name: channel.name,
+			} : undefined,
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
 			uri: note.uri || undefined,
+			url: note.url || undefined,
 
 			...(opts.detail ? {
-				reply: note.replyId ? this.pack(note.replyId, meId, {
-					detail: false
+				reply: note.replyId ? this.pack(note.reply || note.replyId, me, {
+					detail: false,
+					_hint_: options?._hint_
 				}) : undefined,
 
-				renote: note.renoteId ? this.pack(note.renoteId, meId, {
-					detail: true
+				renote: note.renoteId ? this.pack(note.renote || note.renoteId, me, {
+					detail: true,
+					_hint_: options?._hint_
 				}) : undefined,
 
 				poll: note.hasPoll ? populatePoll() : undefined,
@@ -194,7 +221,13 @@ export class NoteRepository extends Repository<Note> {
 		});
 
 		if (packed.user.isCat && packed.text) {
-			packed.text = nyaize(packed.text);
+			const tokens = packed.text ? mfm.parse(packed.text) : [];
+			mfm.inspect(tokens, node => {
+				if (node.type === 'text') {
+					node.props.text = nyaize(node.props.text);
+				}
+			});
+			packed.text = mfm.toString(tokens);
 		}
 
 		if (!opts.skipHide) {
@@ -204,138 +237,214 @@ export class NoteRepository extends Repository<Note> {
 		return packed;
 	}
 
-	public packMany(
-		notes: (Note['id'] | Note)[],
-		me?: User['id'] | User | null | undefined,
+	public async packMany(
+		notes: Note[],
+		me?: { id: User['id'] } | null | undefined,
 		options?: {
 			detail?: boolean;
 			skipHide?: boolean;
 		}
 	) {
-		return Promise.all(notes.map(n => this.pack(n, me, options)));
+		if (notes.length === 0) return [];
+
+		const meId = me ? me.id : null;
+		const myReactionsMap = new Map<Note['id'], NoteReaction | null>();
+		if (meId) {
+			const renoteIds = notes.filter(n => n.renoteId != null).map(n => n.renoteId!);
+			const targets = [...notes.map(n => n.id), ...renoteIds];
+			const myReactions = await NoteReactions.find({
+				userId: meId,
+				noteId: In(targets),
+			});
+
+			for (const target of targets) {
+				myReactionsMap.set(target, myReactions.find(reaction => reaction.noteId === target) || null);
+			}
+		}
+
+		await prefetchEmojis(aggregateNoteEmojis(notes));
+
+		return await Promise.all(notes.map(n => this.pack(n, me, {
+			...options,
+			_hint_: {
+				myReactions: myReactionsMap
+			}
+		})));
 	}
 }
 
 export const packedNoteSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
-			description: 'The unique identifier for this Note.',
 			example: 'xxxxxxxxxx',
 		},
 		createdAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
-			description: 'The date that the Note was created on Misskey.'
 		},
 		text: {
-			type: types.string,
-			optional: bool.false, nullable: bool.true,
+			type: 'string' as const,
+			optional: false as const, nullable: true as const,
 		},
 		cw: {
-			type: types.string,
-			optional: bool.true, nullable: bool.true,
+			type: 'string' as const,
+			optional: true as const, nullable: true as const,
 		},
 		userId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		user: {
-			type: types.object,
+			type: 'object' as const,
 			ref: 'User',
-			optional: bool.false, nullable: bool.false,
+			optional: false as const, nullable: false as const,
 		},
 		replyId: {
-			type: types.string,
-			optional: bool.true, nullable: bool.true,
+			type: 'string' as const,
+			optional: true as const, nullable: true as const,
 			format: 'id',
 			example: 'xxxxxxxxxx',
 		},
 		renoteId: {
-			type: types.string,
-			optional: bool.true, nullable: bool.true,
+			type: 'string' as const,
+			optional: true as const, nullable: true as const,
 			format: 'id',
 			example: 'xxxxxxxxxx',
 		},
 		reply: {
-			type: types.object,
-			optional: bool.true, nullable: bool.true,
+			type: 'object' as const,
+			optional: true as const, nullable: true as const,
 			ref: 'Note'
 		},
 		renote: {
-			type: types.object,
-			optional: bool.true, nullable: bool.true,
+			type: 'object' as const,
+			optional: true as const, nullable: true as const,
 			ref: 'Note'
 		},
 		viaMobile: {
-			type: types.boolean,
-			optional: bool.true, nullable: bool.false,
+			type: 'boolean' as const,
+			optional: true as const, nullable: false as const,
 		},
 		isHidden: {
-			type: types.boolean,
-			optional: bool.true, nullable: bool.false,
+			type: 'boolean' as const,
+			optional: true as const, nullable: false as const,
 		},
 		visibility: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 		},
 		mentions: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: true as const, nullable: false as const,
 			items: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
 				format: 'id'
 			}
 		},
 		visibleUserIds: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: true as const, nullable: false as const,
 			items: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
 				format: 'id'
 			}
 		},
 		fileIds: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: true as const, nullable: false as const,
 			items: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
 				format: 'id'
 			}
 		},
 		files: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: true as const, nullable: false as const,
 			items: {
-				type: types.object,
-				optional: bool.false, nullable: bool.false,
+				type: 'object' as const,
+				optional: false as const, nullable: false as const,
 				ref: 'DriveFile'
 			}
 		},
 		tags: {
-			type: types.array,
-			optional: bool.true, nullable: bool.false,
+			type: 'array' as const,
+			optional: true as const, nullable: false as const,
 			items: {
-				type: types.string,
-				optional: bool.false, nullable: bool.false,
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
 			}
 		},
 		poll: {
-			type: types.object,
-			optional: bool.true, nullable: bool.true,
+			type: 'object' as const,
+			optional: true as const, nullable: true as const,
 		},
-		geo: {
-			type: types.object,
-			optional: bool.true, nullable: bool.true,
+		channelId: {
+			type: 'string' as const,
+			optional: true as const, nullable: true as const,
+			format: 'id',
+			example: 'xxxxxxxxxx',
+		},
+		channel: {
+			type: 'object' as const,
+			optional: true as const, nullable: true as const,
+			ref: 'Channel'
+		},
+		localOnly: {
+			type: 'boolean' as const,
+			optional: false as const, nullable: true as const,
+		},
+		emojis: {
+			type: 'array' as const,
+			optional: false as const, nullable: false as const,
+			items: {
+				type: 'object' as const,
+				optional: false as const, nullable: false as const,
+				properties: {
+					name: {
+						type: 'string' as const,
+						optional: false as const, nullable: false as const,
+					},
+					url: {
+						type: 'string' as const,
+						optional: false as const, nullable: false as const,
+					},
+				},
+			},
+		},
+		reactions: {
+			type: 'object' as const,
+			optional: false as const, nullable: false as const,
+		},
+		renoteCount: {
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
+		},
+		repliesCount: {
+			type: 'number' as const,
+			optional: false as const, nullable: false as const,
+		},
+		uri: {
+			type: 'string' as const,
+			optional: false as const, nullable: true as const,
+		},
+		url: {
+			type: 'string' as const,
+			optional: false as const, nullable: true as const,
+		},
+
+		myReaction: {
+			type: 'object' as const,
+			optional: true as const, nullable: true as const,
 		},
 	},
 };

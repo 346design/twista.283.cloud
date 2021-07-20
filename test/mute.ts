@@ -2,21 +2,17 @@
  * Tests of mute
  *
  * How to run the tests:
- * > mocha test/mute.ts --require ts-node/register
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/mute.ts --require ts-node/register
  *
  * To specify test:
- * > mocha test/mute.ts --require ts-node/register -g 'test name'
- *
- * If the tests not start, try set following enviroment variables:
- * TS_NODE_FILES=true and TS_NODE_TRANSPILE_ONLY=true
- * for more details, please see: https://github.com/TypeStrong/ts-node/issues/754
+ * > npx cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true npx mocha test/mute.ts --require ts-node/register -g 'test name'
  */
 
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
-import { async, signup, request, post, react, connectStream } from './utils';
+import { async, signup, request, post, react, connectStream, startServer, shutdownServer } from './utils';
 
 describe('Mute', () => {
 	let p: childProcess.ChildProcess;
@@ -26,24 +22,15 @@ describe('Mute', () => {
 	let bob: any;
 	let carol: any;
 
-	before(done => {
-		p = childProcess.spawn('node', [__dirname + '/../index.js'], {
-			stdio: ['inherit', 'inherit', 'ipc'],
-			env: { NODE_ENV: 'test' }
-		});
-		p.on('message', async message => {
-			if (message === 'ok') {
-				(p.channel as any).onread = () => {};
-				alice = await signup({ username: 'alice' });
-				bob = await signup({ username: 'bob' });
-				carol = await signup({ username: 'carol' });
-				done();
-			}
-		});
+	before(async () => {
+		p = await startServer();
+		alice = await signup({ username: 'alice' });
+		bob = await signup({ username: 'bob' });
+		carol = await signup({ username: 'carol' });
 	});
 
-	after(() => {
-		p.kill();
+	after(async () => {
+		await shutdownServer(p);
 	});
 
 	it('ミュート作成', async(async () => {
@@ -62,8 +49,8 @@ describe('Mute', () => {
 
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(Array.isArray(res.body), true);
-		assert.strictEqual(res.body.some(note => note.id === bobNote.id), true);
-		assert.strictEqual(res.body.some(note => note.id === carolNote.id), false);
+		assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+		assert.strictEqual(res.body.some((note: any) => note.id === carolNote.id), false);
 	}));
 
 	it('ミュートしているユーザーからメンションされても、hasUnreadMentions が true にならない', async(async () => {
@@ -131,9 +118,9 @@ describe('Mute', () => {
 
 			assert.strictEqual(res.status, 200);
 			assert.strictEqual(Array.isArray(res.body), true);
-			assert.strictEqual(res.body.some(note => note.id === aliceNote.id), true);
-			assert.strictEqual(res.body.some(note => note.id === bobNote.id), true);
-			assert.strictEqual(res.body.some(note => note.id === carolNote.id), false);
+			assert.strictEqual(res.body.some((note: any) => note.id === aliceNote.id), true);
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+			assert.strictEqual(res.body.some((note: any) => note.id === carolNote.id), false);
 		}));
 
 		it('タイムラインにミュートしているユーザーの投稿のRenoteが含まれない', async(async () => {
@@ -147,9 +134,9 @@ describe('Mute', () => {
 
 			assert.strictEqual(res.status, 200);
 			assert.strictEqual(Array.isArray(res.body), true);
-			assert.strictEqual(res.body.some(note => note.id === aliceNote.id), true);
-			assert.strictEqual(res.body.some(note => note.id === bobNote.id), false);
-			assert.strictEqual(res.body.some(note => note.id === carolNote.id), false);
+			assert.strictEqual(res.body.some((note: any) => note.id === aliceNote.id), true);
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
+			assert.strictEqual(res.body.some((note: any) => note.id === carolNote.id), false);
 		}));
 	});
 
@@ -163,8 +150,8 @@ describe('Mute', () => {
 
 			assert.strictEqual(res.status, 200);
 			assert.strictEqual(Array.isArray(res.body), true);
-			assert.strictEqual(res.body.some(notification => notification.userId === bob.id), true);
-			assert.strictEqual(res.body.some(notification => notification.userId === carol.id), false);
+			assert.strictEqual(res.body.some((notification: any) => notification.userId === bob.id), true);
+			assert.strictEqual(res.body.some((notification: any) => notification.userId === carol.id), false);
 		}));
 	});
 });

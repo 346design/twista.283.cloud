@@ -1,9 +1,9 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Users } from '..';
 import { Following } from '../entities/following';
-import { ensure } from '../../prelude/ensure';
 import { awaitAll } from '../../prelude/await-all';
-import { SchemaType, types, bool } from '../../misc/schema';
+import { SchemaType } from '@/misc/schema';
+import { User } from '../entities/user';
 
 type LocalFollowerFollowing = Following & {
 	followerHost: null;
@@ -51,13 +51,13 @@ export class FollowingRepository extends Repository<Following> {
 
 	public async pack(
 		src: Following['id'] | Following,
-		me?: any,
+		me?: { id: User['id'] } | null | undefined,
 		opts?: {
 			populateFollowee?: boolean;
 			populateFollower?: boolean;
 		}
 	): Promise<PackedFollowing> {
-		const following = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const following = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		if (opts == null) opts = {};
 
@@ -77,7 +77,7 @@ export class FollowingRepository extends Repository<Following> {
 
 	public packMany(
 		followings: any[],
-		me?: any,
+		me?: { id: User['id'] } | null | undefined,
 		opts?: {
 			populateFollowee?: boolean;
 			populateFollower?: boolean;
@@ -88,43 +88,39 @@ export class FollowingRepository extends Repository<Following> {
 }
 
 export const packedFollowingSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
-			description: 'The unique identifier for this following.',
 			example: 'xxxxxxxxxx',
 		},
 		createdAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
-			description: 'The date that the following was created.'
 		},
 		followeeId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		followee: {
-			type: types.object,
-			optional: bool.true, nullable: bool.false,
+			type: 'object' as const,
+			optional: true as const, nullable: false as const,
 			ref: 'User',
-			description: 'The followee.'
 		},
 		followerId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		follower: {
-			type: types.object,
-			optional: bool.true, nullable: bool.false,
+			type: 'object' as const,
+			optional: true as const, nullable: false as const,
 			ref: 'User',
-			description: 'The follower.'
 		},
 	}
 };

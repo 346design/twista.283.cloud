@@ -1,4 +1,7 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user';
+import { id } from '../id';
+import { Clip } from './clip';
 
 @Entity()
 export class Meta {
@@ -34,11 +37,6 @@ export class Meta {
 	})
 	public maintainerEmail: string | null;
 
-	@Column('jsonb', {
-		default: [],
-	})
-	public announcements: Record<string, any>[];
-
 	@Column('boolean', {
 		default: false,
 	})
@@ -53,11 +51,6 @@ export class Meta {
 		default: false,
 	})
 	public disableGlobalTimeline: boolean;
-
-	@Column('boolean', {
-		default: true,
-	})
-	public enableEmojiReaction: boolean;
 
 	@Column('boolean', {
 		default: false,
@@ -85,6 +78,17 @@ export class Meta {
 	public blockedHosts: string[];
 
 	@Column('varchar', {
+		length: 512, array: true, default: '{"/featured", "/channels", "/explore", "/pages", "/about-misskey"}'
+	})
+	public pinnedPages: string[];
+
+	@Column({
+		...id(),
+		nullable: true,
+	})
+	public pinnedClipId: Clip['id'] | null;
+
+	@Column('varchar', {
 		length: 512,
 		nullable: true,
 		default: '/assets/ai.png'
@@ -96,6 +100,18 @@ export class Meta {
 		nullable: true
 	})
 	public bannerUrl: string | null;
+
+	@Column('varchar', {
+		length: 512,
+		nullable: true
+	})
+	public backgroundImageUrl: string | null;
+
+	@Column('varchar', {
+		length: 512,
+		nullable: true
+	})
+	public logoImageUrl: string | null;
 
 	@Column('varchar', {
 		length: 512,
@@ -115,11 +131,39 @@ export class Meta {
 	})
 	public cacheRemoteFiles: boolean;
 
+	@Column('boolean', {
+		default: false,
+	})
+	public proxyRemoteFiles: boolean;
+
+	@Column({
+		...id(),
+		nullable: true,
+	})
+	public proxyAccountId: User['id'] | null;
+
+	@ManyToOne(type => User, {
+		onDelete: 'SET NULL'
+	})
+	@JoinColumn()
+	public proxyAccount: User | null;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public enableHcaptcha: boolean;
+
 	@Column('varchar', {
-		length: 128,
+		length: 64,
 		nullable: true
 	})
-	public proxyAccount: string | null;
+	public hcaptchaSiteKey: string | null;
+
+	@Column('varchar', {
+		length: 64,
+		nullable: true
+	})
+	public hcaptchaSecretKey: string | null;
 
 	@Column('boolean', {
 		default: false,
@@ -277,14 +321,14 @@ export class Meta {
 
 	@Column('varchar', {
 		length: 512,
-		default: 'https://github.com/syuilo/misskey',
+		default: 'https://github.com/misskey-dev/misskey',
 		nullable: false
 	})
 	public repositoryUrl: string;
 
 	@Column('varchar', {
 		length: 512,
-		default: 'https://github.com/syuilo/misskey/issues/new',
+		default: 'https://github.com/misskey-dev/misskey/issues/new',
 		nullable: true
 	})
 	public feedbackUrl: string | null;
@@ -345,4 +389,19 @@ export class Meta {
 		default: true,
 	})
 	public objectStorageUseSSL: boolean;
+
+	@Column('boolean', {
+		default: true,
+	})
+	public objectStorageUseProxy: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public objectStorageSetPublicRead: boolean;
+
+	@Column('boolean', {
+		default: true,
+	})
+	public objectStorageS3ForcePathStyle: boolean;
 }

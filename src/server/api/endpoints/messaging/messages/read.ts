@@ -1,29 +1,20 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { MessagingMessages } from '../../../../../models';
 import { readUserMessagingMessage, readGroupMessagingMessage } from '../../../common/read-messaging-message';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定した自分宛てのトークメッセージを既読にします。',
-		'en-US': 'Mark as read a message of messaging.'
-	},
-
 	tags: ['messaging'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:messaging',
 
 	params: {
 		messageId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '既読にするメッセージのID',
-				'en-US': 'The ID of a message that you want to mark as read'
-			}
 		}
 	},
 
@@ -37,16 +28,14 @@ export const meta = {
 };
 
 export default define(meta, async (ps, user) => {
-	const message = await MessagingMessages.findOne({
-		id: ps.messageId,
-	});
+	const message = await MessagingMessages.findOne(ps.messageId);
 
 	if (message == null) {
 		throw new ApiError(meta.errors.noSuchMessage);
 	}
 
 	if (message.recipientId) {
-		await readUserMessagingMessage(user.id, message.recipientId, [message.id]).catch(e => {
+		await readUserMessagingMessage(user.id, message.userId, [message.id]).catch(e => {
 			if (e.id === 'e140a4bf-49ce-4fb6-b67c-b78dadf6b52f') throw new ApiError(meta.errors.noSuchMessage);
 			throw e;
 		});

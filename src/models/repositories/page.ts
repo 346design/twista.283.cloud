@@ -1,11 +1,10 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Page } from '../entities/page';
-import { SchemaType, types, bool } from '../../misc/schema';
+import { SchemaType } from '@/misc/schema';
 import { Users, DriveFiles, PageLikes } from '..';
 import { awaitAll } from '../../prelude/await-all';
 import { DriveFile } from '../entities/drive-file';
 import { User } from '../entities/user';
-import { ensure } from '../../prelude/ensure';
 
 export type PackedPage = SchemaType<typeof packedPageSchema>;
 
@@ -13,10 +12,10 @@ export type PackedPage = SchemaType<typeof packedPageSchema>;
 export class PageRepository extends Repository<Page> {
 	public async pack(
 		src: Page['id'] | Page,
-		me?: User['id'] | User | null | undefined,
+		me?: { id: User['id'] } | null | undefined,
 	): Promise<PackedPage> {
-		const meId = me ? typeof me === 'string' ? me : me.id : null;
-		const page = typeof src === 'object' ? src : await this.findOne(src).then(ensure);
+		const meId = me ? me.id : null;
+		const page = typeof src === 'object' ? src : await this.findOneOrFail(src);
 
 		const attachedFiles: Promise<DriveFile | undefined>[] = [];
 		const collectFile = (xs: any[]) => {
@@ -65,14 +64,16 @@ export class PageRepository extends Repository<Page> {
 			createdAt: page.createdAt.toISOString(),
 			updatedAt: page.updatedAt.toISOString(),
 			userId: page.userId,
-			user: Users.pack(page.user || page.userId),
+			user: Users.pack(page.user || page.userId, me), // { detail: true } すると無限ループするので注意
 			content: page.content,
 			variables: page.variables,
 			title: page.title,
 			name: page.name,
 			summary: page.summary,
+			hideTitleWhenPinned: page.hideTitleWhenPinned,
 			alignCenter: page.alignCenter,
 			font: page.font,
+			script: page.script,
 			eyeCatchingImageId: page.eyeCatchingImageId,
 			eyeCatchingImage: page.eyeCatchingImageId ? await DriveFiles.pack(page.eyeCatchingImageId) : null,
 			attachedFiles: DriveFiles.packMany(await Promise.all(attachedFiles)),
@@ -83,60 +84,61 @@ export class PageRepository extends Repository<Page> {
 
 	public packMany(
 		pages: Page[],
+		me?: { id: User['id'] } | null | undefined,
 	) {
-		return Promise.all(pages.map(x => this.pack(x)));
+		return Promise.all(pages.map(x => this.pack(x, me)));
 	}
 }
 
 export const packedPageSchema = {
-	type: types.object,
-	optional: bool.false, nullable: bool.false,
+	type: 'object' as const,
+	optional: false as const, nullable: false as const,
 	properties: {
 		id: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 			example: 'xxxxxxxxxx',
 		},
 		createdAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
 		},
 		updatedAt: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'date-time',
 		},
 		title: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 		},
 		name: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 		},
 		summary: {
-			type: types.string,
-			optional: bool.false, nullable: bool.true,
+			type: 'string' as const,
+			optional: false as const, nullable: true as const,
 		},
 		content: {
-			type: types.array,
-			optional: bool.false, nullable: bool.false,
+			type: 'array' as const,
+			optional: false as const, nullable: false as const,
 		},
 		variables: {
-			type: types.array,
-			optional: bool.false, nullable: bool.false,
+			type: 'array' as const,
+			optional: false as const, nullable: false as const,
 		},
 		userId: {
-			type: types.string,
-			optional: bool.false, nullable: bool.false,
+			type: 'string' as const,
+			optional: false as const, nullable: false as const,
 			format: 'id',
 		},
 		user: {
-			type: types.object,
+			type: 'object' as const,
 			ref: 'User',
-			optional: bool.false, nullable: bool.false,
+			optional: false as const, nullable: false as const,
 		},
 	}
 };

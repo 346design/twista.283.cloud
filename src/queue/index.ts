@@ -1,8 +1,6 @@
-import * as Queue from 'bull';
 import * as httpSignature from 'http-signature';
 
-import config from '../config';
-import { ILocalUser } from '../models/entities/user';
+import config from '@/config';
 import { program } from '../argv';
 
 import processDeliver from './processors/deliver';
@@ -11,31 +9,18 @@ import processDb from './processors/db';
 import procesObjectStorage from './processors/object-storage';
 import { queueLogger } from './logger';
 import { DriveFile } from '../models/entities/drive-file';
-
-function initializeQueue(name: string) {
-	return new Queue(name, {
-		redis: {
-			port: config.redis.port,
-			host: config.redis.host,
-			password: config.redis.pass,
-			db: config.redis.db || 0,
-		},
-		prefix: config.redis.prefix ? `${config.redis.prefix}:queue` : 'queue'
-	});
-}
+import { getJobInfo } from './get-job-info';
+import { dbQueue, deliverQueue, inboxQueue, objectStorageQueue } from './queues';
+import { ThinUser } from './types';
+import { IActivity } from '@/remote/activitypub/type';
 
 function renderError(e: Error): any {
 	return {
-		stack: e.stack,
-		message: e.message,
-		name: e.name
+		stack: e?.stack,
+		message: e?.message,
+		name: e?.name
 	};
 }
-
-export const deliverQueue = initializeQueue('deliver');
-export const inboxQueue = initializeQueue('inbox');
-export const dbQueue = initializeQueue('db');
-export const objectStorageQueue = initializeQueue('objectStorage');
 
 const deliverLogger = queueLogger.createSubLogger('deliver');
 const inboxLogger = queueLogger.createSubLogger('inbox');
@@ -44,19 +29,19 @@ const objectStorageLogger = queueLogger.createSubLogger('objectStorage');
 
 deliverQueue
 	.on('waiting', (jobId) => deliverLogger.debug(`waiting id=${jobId}`))
-	.on('active', (job) => deliverLogger.debug(`active id=${job.id} to=${job.data.to}`))
-	.on('completed', (job, result) => deliverLogger.debug(`completed(${result}) id=${job.id} to=${job.data.to}`))
-	.on('failed', (job, err) => deliverLogger.warn(`failed(${err}) id=${job.id} to=${job.data.to}`, { job, e: renderError(err) }))
+	.on('active', (job) => deliverLogger.debug(`active ${getJobInfo(job, true)} to=${job.data.to}`))
+	.on('completed', (job, result) => deliverLogger.debug(`completed(${result}) ${getJobInfo(job, true)} to=${job.data.to}`))
+	.on('failed', (job, err) => deliverLogger.warn(`failed(${err}) ${getJobInfo(job)} to=${job.data.to}`))
 	.on('error', (job: any, err: Error) => deliverLogger.error(`error ${err}`, { job, e: renderError(err) }))
-	.on('stalled', (job) => deliverLogger.warn(`stalled id=${job.id} to=${job.data.to}`));
+	.on('stalled', (job) => deliverLogger.warn(`stalled ${getJobInfo(job)} to=${job.data.to}`));
 
 inboxQueue
 	.on('waiting', (jobId) => inboxLogger.debug(`waiting id=${jobId}`))
-	.on('active', (job) => inboxLogger.debug(`active id=${job.id}`))
-	.on('completed', (job, result) => inboxLogger.debug(`completed(${result}) id=${job.id}`))
-	.on('failed', (job, err) => inboxLogger.warn(`failed(${err}) id=${job.id} activity=${job.data.activity ? job.data.activity.id : 'none'}`, { job, e: renderError(err) }))
+	.on('active', (job) => inboxLogger.debug(`active ${getJobInfo(job, true)}`))
+	.on('completed', (job, result) => inboxLogger.debug(`completed(${result}) ${getJobInfo(job, true)}`))
+	.on('failed', (job, err) => inboxLogger.warn(`failed(${err}) ${getJobInfo(job)} activity=${job.data.activity ? job.data.activity.id : 'none'}`, { job, e: renderError(err) }))
 	.on('error', (job: any, err: Error) => inboxLogger.error(`error ${err}`, { job, e: renderError(err) }))
-	.on('stalled', (job) => inboxLogger.warn(`stalled id=${job.id} activity=${job.data.activity ? job.data.activity.id : 'none'}`));
+	.on('stalled', (job) => inboxLogger.warn(`stalled ${getJobInfo(job)} activity=${job.data.activity ? job.data.activity.id : 'none'}`));
 
 dbQueue
 	.on('waiting', (jobId) => dbLogger.debug(`waiting id=${jobId}`))
@@ -74,8 +59,9 @@ objectStorageQueue
 	.on('error', (job: any, err: Error) => objectStorageLogger.error(`error ${err}`, { job, e: renderError(err) }))
 	.on('stalled', (job) => objectStorageLogger.warn(`stalled id=${job.id}`));
 
-export function deliver(user: ILocalUser, content: any, to: any) {
+export function deliver(user: ThinUser, content: unknown, to: string | null) {
 	if (content == null) return null;
+	if (to == null) return null;
 
 	const data = {
 		user,
@@ -84,7 +70,8 @@ export function deliver(user: ILocalUser, content: any, to: any) {
 	};
 
 	return deliverQueue.add(data, {
-		attempts: 8,
+		attempts: config.deliverJobMaxAttempts || 12,
+		timeout: 1 * 60 * 1000,	// 1min
 		backoff: {
 			type: 'exponential',
 			delay: 60 * 1000
@@ -94,24 +81,25 @@ export function deliver(user: ILocalUser, content: any, to: any) {
 	});
 }
 
-export function inbox(activity: any, signature: httpSignature.IParsedSignature) {
+export function inbox(activity: IActivity, signature: httpSignature.IParsedSignature) {
 	const data = {
 		activity: activity,
 		signature
 	};
 
 	return inboxQueue.add(data, {
-		attempts: 8,
+		attempts: config.inboxJobMaxAttempts || 8,
+		timeout: 5 * 60 * 1000,	// 5min
 		backoff: {
 			type: 'exponential',
-			delay: 1000
+			delay: 60 * 1000
 		},
 		removeOnComplete: true,
 		removeOnFail: true
 	});
 }
 
-export function createDeleteDriveFilesJob(user: ILocalUser) {
+export function createDeleteDriveFilesJob(user: ThinUser) {
 	return dbQueue.add('deleteDriveFiles', {
 		user: user
 	}, {
@@ -120,7 +108,7 @@ export function createDeleteDriveFilesJob(user: ILocalUser) {
 	});
 }
 
-export function createExportNotesJob(user: ILocalUser) {
+export function createExportNotesJob(user: ThinUser) {
 	return dbQueue.add('exportNotes', {
 		user: user
 	}, {
@@ -129,7 +117,7 @@ export function createExportNotesJob(user: ILocalUser) {
 	});
 }
 
-export function createExportFollowingJob(user: ILocalUser) {
+export function createExportFollowingJob(user: ThinUser) {
 	return dbQueue.add('exportFollowing', {
 		user: user
 	}, {
@@ -138,7 +126,7 @@ export function createExportFollowingJob(user: ILocalUser) {
 	});
 }
 
-export function createExportMuteJob(user: ILocalUser) {
+export function createExportMuteJob(user: ThinUser) {
 	return dbQueue.add('exportMute', {
 		user: user
 	}, {
@@ -147,7 +135,7 @@ export function createExportMuteJob(user: ILocalUser) {
 	});
 }
 
-export function createExportBlockingJob(user: ILocalUser) {
+export function createExportBlockingJob(user: ThinUser) {
 	return dbQueue.add('exportBlocking', {
 		user: user
 	}, {
@@ -156,7 +144,7 @@ export function createExportBlockingJob(user: ILocalUser) {
 	});
 }
 
-export function createExportUserListsJob(user: ILocalUser) {
+export function createExportUserListsJob(user: ThinUser) {
 	return dbQueue.add('exportUserLists', {
 		user: user
 	}, {
@@ -165,7 +153,7 @@ export function createExportUserListsJob(user: ILocalUser) {
 	});
 }
 
-export function createImportFollowingJob(user: ILocalUser, fileId: DriveFile['id']) {
+export function createImportFollowingJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importFollowing', {
 		user: user,
 		fileId: fileId
@@ -175,7 +163,7 @@ export function createImportFollowingJob(user: ILocalUser, fileId: DriveFile['id
 	});
 }
 
-export function createImportUserListsJob(user: ILocalUser, fileId: DriveFile['id']) {
+export function createImportUserListsJob(user: ThinUser, fileId: DriveFile['id']) {
 	return dbQueue.add('importUserLists', {
 		user: user,
 		fileId: fileId
@@ -194,10 +182,17 @@ export function createDeleteObjectStorageFileJob(key: string) {
 	});
 }
 
+export function createCleanRemoteFilesJob() {
+	return objectStorageQueue.add('cleanRemoteFiles', {}, {
+		removeOnComplete: true,
+		removeOnFail: true
+	});
+}
+
 export default function() {
 	if (!program.onlyServer) {
-		deliverQueue.process(128, processDeliver);
-		inboxQueue.process(128, processInbox);
+		deliverQueue.process(config.deliverJobConcurrency || 128, processDeliver);
+		inboxQueue.process(config.inboxJobConcurrency || 16, processInbox);
 		processDb(dbQueue);
 		procesObjectStorage(objectStorageQueue);
 	}

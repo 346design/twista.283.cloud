@@ -1,13 +1,13 @@
 import $ from 'cafy';
 import define from '../../define';
-import { fetchMeta } from '../../../../misc/fetch-meta';
-import { genId } from '../../../../misc/gen-id';
+import { fetchMeta } from '@/misc/fetch-meta';
+import { genId } from '@/misc/gen-id';
 import { SwSubscriptions } from '../../../../models';
 
 export const meta = {
 	tags: ['account'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	params: {
 		endpoint: {
@@ -20,6 +20,22 @@ export const meta = {
 
 		publickey: {
 			validator: $.str
+		}
+	},
+
+	res: {
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
+		properties: {
+			state: {
+				type: 'string' as const,
+				optional: false as const, nullable: false as const,
+				enum: ['already-subscribed', 'subscribed']
+			},
+			key: {
+				type: 'string' as const,
+				optional: false as const, nullable: false as const
+			}
 		}
 	}
 };
@@ -42,7 +58,7 @@ export default define(meta, async (ps, user) => {
 		};
 	}
 
-	await SwSubscriptions.save({
+	await SwSubscriptions.insert({
 		id: genId(),
 		createdAt: new Date(),
 		userId: user.id,

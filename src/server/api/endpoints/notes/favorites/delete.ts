@@ -1,31 +1,20 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { getNote } from '../../../common/getters';
 import { NoteFavorites } from '../../../../../models';
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '指定した投稿のお気に入りを解除します。',
-		'en-US': 'Unfavorite a note.'
-	},
-
 	tags: ['notes', 'favorites'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'write:favorites',
 
 	params: {
 		noteId: {
 			validator: $.type(ID),
-			desc: {
-				'ja-JP': '対象の投稿のID',
-				'en-US': 'Target note ID.'
-			}
 		}
 	},
 

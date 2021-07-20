@@ -1,8 +1,8 @@
-import * as Router from 'koa-router';
-import config from '../config';
-import { fetchMeta } from '../misc/fetch-meta';
+import * as Router from '@koa/router';
+import config from '@/config';
+import { fetchMeta } from '@/misc/fetch-meta';
+import { Users } from '../models';
 // import User from '../models/user';
-import { name as softwareName, version, repository } from '../../package.json';
 // import Note from '../models/note';
 
 const router = new Router();
@@ -20,27 +20,7 @@ export const links = [/* (awaiting release) {
 
 const nodeinfo2 = async () => {
 	const [
-		{
-			name,
-			description,
-			maintainerName,
-			maintainerEmail,
-			langs,
-			ToSUrl,
-			repositoryUrl,
-			feedbackUrl,
-			announcements,
-			disableRegistration,
-			disableLocalTimeline,
-			disableGlobalTimeline,
-			enableRecaptcha,
-			maxNoteTextLength,
-			enableTwitterIntegration,
-			enableGithubIntegration,
-			enableDiscordIntegration,
-			enableEmail,
-			enableServiceWorker
-		},
+		meta,
 		// total,
 		// activeHalfyear,
 		// activeMonth,
@@ -55,45 +35,48 @@ const nodeinfo2 = async () => {
 		// Note.count({ '_user.host': null, replyId: { $ne: null } })
 	]);
 
+	const proxyAccount = meta.proxyAccountId ? await Users.pack(meta.proxyAccountId).catch(() => null) : null;
+
 	return {
 		software: {
-			name: softwareName,
-			version,
-			repository: repository.url
+			name: 'misskey',
+			version: config.version,
+			repository: meta.repositoryUrl,
 		},
 		protocols: ['activitypub'],
 		services: {
 			inbound: [] as string[],
 			outbound: ['atom1.0', 'rss2.0']
 		},
-		openRegistrations: !disableRegistration,
+		openRegistrations: !meta.disableRegistration,
 		usage: {
 			users: {} // { total, activeHalfyear, activeMonth },
 			// localPosts,
 			// localComments
 		},
 		metadata: {
-			name,
-			description,
+			nodeName: meta.name,
+			nodeDescription: meta.description,
 			maintainer: {
-				name: maintainerName,
-				email: maintainerEmail
+				name: meta.maintainerName,
+				email: meta.maintainerEmail
 			},
-			langs,
-			ToSUrl,
-			repositoryUrl,
-			feedbackUrl,
-			announcements,
-			disableRegistration,
-			disableLocalTimeline,
-			disableGlobalTimeline,
-			enableRecaptcha,
-			maxNoteTextLength,
-			enableTwitterIntegration,
-			enableGithubIntegration,
-			enableDiscordIntegration,
-			enableEmail,
-			enableServiceWorker
+			langs: meta.langs,
+			tosUrl: meta.ToSUrl,
+			repositoryUrl: meta.repositoryUrl,
+			feedbackUrl: meta.feedbackUrl,
+			disableRegistration: meta.disableRegistration,
+			disableLocalTimeline: meta.disableLocalTimeline,
+			disableGlobalTimeline: meta.disableGlobalTimeline,
+			enableHcaptcha: meta.enableHcaptcha,
+			enableRecaptcha: meta.enableRecaptcha,
+			maxNoteTextLength: meta.maxNoteTextLength,
+			enableTwitterIntegration: meta.enableTwitterIntegration,
+			enableGithubIntegration: meta.enableGithubIntegration,
+			enableDiscordIntegration: meta.enableDiscordIntegration,
+			enableEmail: meta.enableEmail,
+			enableServiceWorker: meta.enableServiceWorker,
+			proxyAccountName: proxyAccount ? proxyAccount.username : null,
 		}
 	};
 };
@@ -102,6 +85,7 @@ router.get(nodeinfo2_1path, async ctx => {
 	const base = await nodeinfo2();
 
 	ctx.body = { version: '2.1', ...base };
+	ctx.set('Cache-Control', 'public, max-age=600');
 });
 
 router.get(nodeinfo2_0path, async ctx => {
@@ -110,6 +94,7 @@ router.get(nodeinfo2_0path, async ctx => {
 	delete base.software.repository;
 
 	ctx.body = { version: '2.0', ...base };
+	ctx.set('Cache-Control', 'public, max-age=600');
 });
 
 export default router;

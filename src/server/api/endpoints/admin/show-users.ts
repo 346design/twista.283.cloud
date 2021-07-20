@@ -5,7 +5,7 @@ import { Users } from '../../../../models';
 export const meta = {
 	tags: ['admin'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 	requireModerator: true,
 
 	params: {
@@ -33,6 +33,7 @@ export const meta = {
 		state: {
 			validator: $.optional.str.or([
 				'all',
+				'available',
 				'admin',
 				'moderator',
 				'adminOrModerator',
@@ -49,6 +50,26 @@ export const meta = {
 				'remote',
 			]),
 			default: 'local'
+		},
+
+		username: {
+			validator: $.optional.str,
+			default: null
+		},
+
+		hostname: {
+			validator: $.optional.str,
+			default: null
+		}
+	},
+
+	res: {
+		type: 'array' as const,
+		nullable: false as const, optional: false as const,
+		items: {
+			type: 'object' as const,
+			nullable: false as const, optional: false as const,
+			ref: 'User'
 		}
 	}
 };
@@ -57,9 +78,10 @@ export default define(meta, async (ps, me) => {
 	const query = Users.createQueryBuilder('user');
 
 	switch (ps.state) {
+		case 'available': query.where('user.isSuspended = FALSE'); break;
 		case 'admin': query.where('user.isAdmin = TRUE'); break;
 		case 'moderator': query.where('user.isModerator = TRUE'); break;
-		case 'adminOrModerator': query.where('user.isAdmin = TRUE OR isModerator = TRUE'); break;
+		case 'adminOrModerator': query.where('user.isAdmin = TRUE OR user.isModerator = TRUE'); break;
 		case 'alive': query.where('user.updatedAt > :date', { date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5) }); break;
 		case 'silenced': query.where('user.isSilenced = TRUE'); break;
 		case 'suspended': query.where('user.isSuspended = TRUE'); break;
@@ -70,13 +92,21 @@ export default define(meta, async (ps, me) => {
 		case 'remote': query.andWhere('user.host IS NOT NULL'); break;
 	}
 
+	if (ps.username) {
+		query.andWhere('user.usernameLower like :username', { username: ps.username.toLowerCase() + '%' });
+	}
+
+	if (ps.hostname) {
+		query.andWhere('user.host like :hostname', { hostname: '%' + ps.hostname.toLowerCase() + '%' });
+	}
+
 	switch (ps.sort) {
 		case '+follower': query.orderBy('user.followersCount', 'DESC'); break;
 		case '-follower': query.orderBy('user.followersCount', 'ASC'); break;
 		case '+createdAt': query.orderBy('user.createdAt', 'DESC'); break;
 		case '-createdAt': query.orderBy('user.createdAt', 'ASC'); break;
-		case '+updatedAt': query.orderBy('user.updatedAt', 'DESC'); break;
-		case '-updatedAt': query.orderBy('user.updatedAt', 'ASC'); break;
+		case '+updatedAt': query.orderBy('user.updatedAt', 'DESC', 'NULLS LAST'); break;
+		case '-updatedAt': query.orderBy('user.updatedAt', 'ASC', 'NULLS FIRST'); break;
 		default: query.orderBy('user.id', 'ASC'); break;
 	}
 

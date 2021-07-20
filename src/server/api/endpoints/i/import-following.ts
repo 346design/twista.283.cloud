@@ -1,5 +1,5 @@
 import $ from 'cafy';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../define';
 import { createImportFollowingJob } from '../../../../queue';
 import ms = require('ms');
@@ -8,7 +8,7 @@ import { DriveFiles } from '../../../../models';
 
 export const meta = {
 	secure: true,
-	requireCredential: true,
+	requireCredential: true as const,
 	limit: {
 		duration: ms('1hour'),
 		max: 1,

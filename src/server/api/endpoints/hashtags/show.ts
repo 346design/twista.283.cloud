@@ -2,30 +2,22 @@ import $ from 'cafy';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { Hashtags } from '../../../../models';
-import { types, bool } from '../../../../misc/schema';
+import { normalizeForSearch } from '@/misc/normalize-for-search';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定したハッシュタグの情報を取得します。',
-	},
-
 	tags: ['hashtags'],
 
-	requireCredential: false,
+	requireCredential: false as const,
 
 	params: {
 		tag: {
 			validator: $.str,
-			desc: {
-				'ja-JP': '対象のハッシュタグ(#なし)',
-				'en-US': 'Target hashtag. (no # prefixed)'
-			}
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'Hashtag',
 	},
 
@@ -39,7 +31,7 @@ export const meta = {
 };
 
 export default define(meta, async (ps, user) => {
-	const hashtag = await Hashtags.findOne({ name: ps.tag.toLowerCase() });
+	const hashtag = await Hashtags.findOne({ name: normalizeForSearch(ps.tag) });
 	if (hashtag == null) {
 		throw new ApiError(meta.errors.noSuchHashtag);
 	}

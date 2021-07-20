@@ -3,16 +3,18 @@ import * as ms from 'ms';
 import { length } from 'stringz';
 import create from '../../../../services/note/create';
 import define from '../../define';
-import { fetchMeta } from '../../../../misc/fetch-meta';
+import { fetchMeta } from '@/misc/fetch-meta';
 import { ApiError } from '../../error';
-import { ID } from '../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import { User } from '../../../../models/entities/user';
-import { Users, DriveFiles, Notes } from '../../../../models';
+import { Users, DriveFiles, Notes, Channels } from '../../../../models';
 import { DriveFile } from '../../../../models/entities/drive-file';
 import { Note } from '../../../../models/entities/note';
-import { types, bool } from '../../../../misc/schema';
+import { DB_MAX_NOTE_TEXT_LENGTH } from '@/misc/hard-limits';
+import { noteVisibilities } from '../../../../types';
+import { Channel } from '../../../../models/entities/channel';
 
-let maxNoteTextLength = 1000;
+let maxNoteTextLength = 500;
 
 setInterval(() => {
 	fetchMeta().then(m => {
@@ -21,15 +23,9 @@ setInterval(() => {
 }, 3000);
 
 export const meta = {
-	stability: 'stable',
-
-	desc: {
-		'ja-JP': '投稿します。'
-	},
-
 	tags: ['notes'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	limit: {
 		duration: ms('1hour'),
@@ -40,125 +36,75 @@ export const meta = {
 
 	params: {
 		visibility: {
-			validator: $.optional.str.or(['public', 'home', 'followers', 'specified', 'private']),
+			validator: $.optional.str.or(noteVisibilities as unknown as string[]),
 			default: 'public',
-			desc: {
-				'ja-JP': '投稿の公開範囲'
-			}
 		},
 
 		visibleUserIds: {
 			validator: $.optional.arr($.type(ID)).unique().min(0),
-			desc: {
-				'ja-JP': '(投稿の公開範囲が specified の場合)投稿を閲覧できるユーザー'
-			}
 		},
 
 		text: {
 			validator: $.optional.nullable.str.pipe(text =>
-				length(text.trim()) <= maxNoteTextLength && text.trim() != ''
+				text.trim() != ''
+					&& length(text.trim()) <= maxNoteTextLength
+					&& Array.from(text.trim()).length <= DB_MAX_NOTE_TEXT_LENGTH	// DB limit
 			),
-			default: null as any,
-			desc: {
-				'ja-JP': '投稿内容'
-			}
+			default: null,
 		},
 
 		cw: {
 			validator: $.optional.nullable.str.pipe(Notes.validateCw),
-			desc: {
-				'ja-JP': 'コンテンツの警告。このパラメータを指定すると設定したテキストで投稿のコンテンツを隠す事が出来ます。'
-			}
 		},
 
 		viaMobile: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': 'モバイルデバイスからの投稿か否か。'
-			}
 		},
 
 		localOnly: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': 'ローカルのみに投稿か否か。'
-			}
 		},
 
 		noExtractMentions: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': '本文からメンションを展開しないか否か。'
-			}
 		},
 
 		noExtractHashtags: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': '本文からハッシュタグを展開しないか否か。'
-			}
 		},
 
 		noExtractEmojis: {
 			validator: $.optional.bool,
 			default: false,
-			desc: {
-				'ja-JP': '本文からカスタム絵文字を展開しないか否か。'
-			}
-		},
-
-		geo: {
-			validator: $.optional.nullable.obj({
-				coordinates: $.arr().length(2)
-					.item(0, $.num.range(-180, 180))
-					.item(1, $.num.range(-90, 90)),
-				altitude: $.nullable.num,
-				accuracy: $.nullable.num,
-				altitudeAccuracy: $.nullable.num,
-				heading: $.nullable.num.range(0, 360),
-				speed: $.nullable.num
-			}).strict(),
-			desc: {
-				'ja-JP': '位置情報'
-			},
-			ref: 'geo'
 		},
 
 		fileIds: {
 			validator: $.optional.arr($.type(ID)).unique().range(1, 4),
-			desc: {
-				'ja-JP': '添付するファイル'
-			}
 		},
 
 		mediaIds: {
 			validator: $.optional.arr($.type(ID)).unique().range(1, 4),
 			deprecated: true,
-			desc: {
-				'ja-JP': '添付するファイル (このパラメータは廃止予定です。代わりに fileIds を使ってください。)'
-			}
 		},
 
 		replyId: {
-			validator: $.optional.type(ID),
-			desc: {
-				'ja-JP': '返信対象'
-			}
+			validator: $.optional.nullable.type(ID),
 		},
 
 		renoteId: {
-			validator: $.optional.type(ID),
-			desc: {
-				'ja-JP': 'Renote対象'
-			}
+			validator: $.optional.nullable.type(ID),
+		},
+
+		channelId: {
+			validator: $.optional.nullable.type(ID),
 		},
 
 		poll: {
-			validator: $.optional.obj({
+			validator: $.optional.nullable.obj({
 				choices: $.arr($.str)
 					.unique()
 					.range(2, 10)
@@ -167,22 +113,18 @@ export const meta = {
 				expiresAt: $.optional.nullable.num.int(),
 				expiredAfter: $.optional.nullable.num.int().min(1)
 			}).strict(),
-			desc: {
-				'ja-JP': 'アンケート'
-			},
 			ref: 'poll'
 		}
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		properties: {
 			createdNote: {
-				type: types.object,
-				optional: bool.false, nullable: bool.false,
+				type: 'object' as const,
+				optional: false as const, nullable: false as const,
 				ref: 'Note',
-				description: '作成した投稿'
 			}
 		}
 	},
@@ -222,11 +164,17 @@ export const meta = {
 			message: 'Poll is already expired.',
 			code: 'CANNOT_CREATE_ALREADY_EXPIRED_POLL',
 			id: '04da457d-b083-4055-9082-955525eda5a5'
-		}
+		},
+
+		noSuchChannel: {
+			message: 'No such channel.',
+			code: 'NO_SUCH_CHANNEL',
+			id: 'b1653923-5453-4edc-b786-7c4f39bb0bbb'
+		},
 	}
 };
 
-export default define(meta, async (ps, user, app) => {
+export default define(meta, async (ps, user) => {
 	let visibleUsers: User[] = [];
 	if (ps.visibleUserIds) {
 		visibleUsers = (await Promise.all(ps.visibleUserIds.map(id => Users.findOne(id))))
@@ -285,6 +233,15 @@ export default define(meta, async (ps, user, app) => {
 		throw new ApiError(meta.errors.contentRequired);
 	}
 
+	let channel: Channel | undefined;
+	if (ps.channelId != null) {
+		channel = await Channels.findOne(ps.channelId);
+
+		if (channel == null) {
+			throw new ApiError(meta.errors.noSuchChannel);
+		}
+	}
+
 	// 投稿を作成
 	const note = await create(user, {
 		createdAt: new Date(),
@@ -298,15 +255,14 @@ export default define(meta, async (ps, user, app) => {
 		reply,
 		renote,
 		cw: ps.cw,
-		app,
 		viaMobile: ps.viaMobile,
 		localOnly: ps.localOnly,
 		visibility: ps.visibility,
 		visibleUsers,
+		channel,
 		apMentions: ps.noExtractMentions ? [] : undefined,
 		apHashtags: ps.noExtractHashtags ? [] : undefined,
 		apEmojis: ps.noExtractEmojis ? [] : undefined,
-		geo: ps.geo
 	});
 
 	return {

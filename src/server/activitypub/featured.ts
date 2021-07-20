@@ -1,13 +1,12 @@
-import * as Router from 'koa-router';
-import config from '../../config';
+import * as Router from '@koa/router';
+import config from '@/config';
 import { renderActivity } from '../../remote/activitypub/renderer';
 import renderOrderedCollection from '../../remote/activitypub/renderer/ordered-collection';
 import { setResponseType } from '../activitypub';
 import renderNote from '../../remote/activitypub/renderer/note';
 import { Users, Notes, UserNotePinings } from '../../models';
-import { ensure } from '../../prelude/ensure';
 
-export default async (ctx: Router.IRouterContext) => {
+export default async (ctx: Router.RouterContext) => {
 	const userId = ctx.params.user;
 
 	// Verify user
@@ -27,7 +26,7 @@ export default async (ctx: Router.IRouterContext) => {
 	});
 
 	const pinnedNotes = await Promise.all(pinings.map(pining =>
-		Notes.findOne(pining.noteId).then(ensure)));
+		Notes.findOneOrFail(pining.noteId)));
 
 	const renderedNotes = await Promise.all(pinnedNotes.map(note => renderNote(note)));
 
@@ -37,6 +36,6 @@ export default async (ctx: Router.IRouterContext) => {
 	);
 
 	ctx.body = renderActivity(rendered);
-	ctx.set('Cache-Control', 'private, max-age=0, must-revalidate');
+	ctx.set('Cache-Control', 'public, max-age=180');
 	setResponseType(ctx);
 };

@@ -1,14 +1,9 @@
 import define from '../define';
-import { Notes, Users } from '../../../models';
+import { NoteReactions, Notes, Users } from '../../../models';
 import { federationChart, driveChart } from '../../../services/chart';
-import { bool, types } from '../../../misc/schema';
 
 export const meta = {
-	requireCredential: false,
-
-	desc: {
-		'en-US': 'Get the instance\'s statistics'
-	},
+	requireCredential: false as const,
 
 	tags: ['meta'],
 
@@ -16,43 +11,49 @@ export const meta = {
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		properties: {
 			notesCount: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'The count of all (local/remote) notes of this instance.',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 			originalNotesCount: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'The count of all local notes of this instance.',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 			usersCount: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'The count of all (local/remote) accounts of this instance.',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 			originalUsersCount: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'The count of all local accounts of this instance.',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
 			instances: {
-				type: types.number,
-				optional: bool.false, nullable: bool.false,
-				description: 'The count of federated instances.',
+				type: 'number' as const,
+				optional: false as const, nullable: false as const,
 			},
+			driveUsageLocal: {
+				type: 'number' as const,
+				optional: false as const, nullable: false as const
+			},
+			driveUsageRemote: {
+				type: 'number' as const,
+				optional: false as const, nullable: false as const
+			}
 		}
 	}
 };
 
 export default define(meta, async () => {
-	const [notesCount,
+	const [
+		notesCount,
 		originalNotesCount,
 		usersCount,
 		originalUsersCount,
+		reactionsCount,
+		//originalReactionsCount,
 		instances,
 		driveUsageLocal,
 		driveUsageRemote
@@ -61,9 +62,11 @@ export default define(meta, async () => {
 		Notes.count({ where: { userHost: null }, cache: 3600000 }),
 		Users.count({ cache: 3600000 }),
 		Users.count({ where: { host: null }, cache: 3600000 }),
-		federationChart.getChart('hour', 1).then(chart => chart.instance.total[0]),
-		driveChart.getChart('hour', 1).then(chart => chart.local.totalSize[0]),
-		driveChart.getChart('hour', 1).then(chart => chart.remote.totalSize[0]),
+		NoteReactions.count({ cache: 3600000 }), // 1 hour
+		//NoteReactions.count({ where: { userHost: null }, cache: 3600000 }),
+		federationChart.getChart('hour', 1, null).then(chart => chart.instance.total[0]),
+		driveChart.getChart('hour', 1, null).then(chart => chart.local.totalSize[0]),
+		driveChart.getChart('hour', 1, null).then(chart => chart.remote.totalSize[0]),
 	]);
 
 	return {
@@ -71,6 +74,8 @@ export default define(meta, async () => {
 		originalNotesCount,
 		usersCount,
 		originalUsersCount,
+		reactionsCount,
+		//originalReactionsCount,
 		instances,
 		driveUsageLocal,
 		driveUsageRemote

@@ -1,19 +1,13 @@
 import $ from 'cafy';
-import { ID } from '../../../../../misc/cafy-id';
+import { ID } from '@/misc/cafy-id';
 import define from '../../../define';
 import { ApiError } from '../../../error';
 import { UserLists } from '../../../../../models';
-import { types, bool } from '../../../../../misc/schema';
 
 export const meta = {
-	desc: {
-		'ja-JP': '指定したユーザーリストの情報を取得します。',
-		'en-US': 'Show a user list.'
-	},
-
 	tags: ['lists', 'account'],
 
-	requireCredential: true,
+	requireCredential: true as const,
 
 	kind: 'read:account',
 
@@ -24,8 +18,8 @@ export const meta = {
 	},
 
 	res: {
-		type: types.object,
-		optional: bool.false, nullable: bool.false,
+		type: 'object' as const,
+		optional: false as const, nullable: false as const,
 		ref: 'UserList',
 	},
 

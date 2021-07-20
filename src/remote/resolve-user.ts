@@ -1,12 +1,12 @@
-import webFinger from './webfinger';
-import config from '../config';
-import { createPerson, updatePerson } from './activitypub/models/person';
 import { URL } from 'url';
+import webFinger from './webfinger';
+import config from '@/config';
+import { createPerson, updatePerson } from './activitypub/models/person';
 import { remoteLogger } from './logger';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import { User, IRemoteUser } from '../models/entities/user';
 import { Users } from '../models';
-import { toPuny } from '../misc/convert-host';
+import { toPuny } from '@/misc/convert-host';
 
 const logger = remoteLogger.createSubLogger('resolve-user');
 
@@ -66,7 +66,7 @@ export async function resolveUser(username: string, host: string | null, option?
 			// validate uri
 			const uri = new URL(self.href);
 			if (uri.hostname !== host) {
-				throw new Error(`Invalied uri`);
+				throw new Error(`Invalid uri`);
 			}
 
 			await Users.update({
