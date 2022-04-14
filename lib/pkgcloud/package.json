@@ -56,7 +56,7 @@
     "helion"
   ],
   "dependencies": {
-    "async": "^2.6.2",
+    "async": "^3.2.2",
     "errs": "^0.3.2",
     "eventemitter2": "^5.0.1",
     "filed": "^0.1.0",
