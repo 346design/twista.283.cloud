@@ -157,7 +157,7 @@
 		"file-type": "^12.4.0",
 		"filed": "^0.2.1",
 		"fluent-ffmpeg": "^2.1.2",
-		"gulp": "^4.0.2",
+		"gulp": "^5.0.0",
 		"gulp-imagemin": "^6.2.0",
 		"gulp-mocha": "^6.0.0",
 		"gulp-postcss": "^8.0.0",
