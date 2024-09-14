@@ -187,7 +187,7 @@
 		"koa-logger": "^3.2.1",
 		"koa-mount": "^4.0.0",
 		"koa-multer": "^1.0.2",
-		"koa-router": "^7.4.0",
+		"koa-router": "^13.0.1",
 		"koa-send": "^5.0.0",
 		"koa-slow": "^2.1.0",
 		"koa-views": "^6.2.1",
