@@ -1,12 +1,9 @@
 {
 	"recommendations": [
-		"ducksoupdev.vue2",
 		"editorconfig.editorconfig",
-		"eg2.tslint",
-		"eg2.vscode-npm-script",
-		"hollowtree.vue-snippets",
-		"ms-vscode.typescript-javascript-grammar",
-		"octref.vetur",
-		"sysoev.language-stylus"
+		"dbaeumer.vscode-eslint",
+		"Vue.volar",
+		"Orta.vscode-jest",
+		"mrmlnc.vscode-json5"
 	]
 }

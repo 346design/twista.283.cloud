@@ -1,0 +1,756 @@
+@charset "utf-8";
+
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+:root {
+	--MI-radius: 12px;
+	--MI-marginFull: 16px;
+	--MI-marginHalf: 10px;
+
+	--MI-margin: var(--MI-marginFull);
+
+	// switch dynamically
+	--MI-minBottomSpacingMobile: calc(72px + max(12px, env(safe-area-inset-bottom, 0px)));
+	--MI-minBottomSpacing: var(--MI-minBottomSpacingMobile);
+
+	@media (max-width: 500px) {
+		--MI-margin: var(--MI-marginHalf);
+	}
+}
+
+html {
+	overflow: auto;
+	overflow-wrap: break-word;
+	font-family: 'Hiragino Maru Gothic Pro', "BIZ UDGothic", Roboto, HelveticaNeue, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	font-size: 14px;
+	line-height: 1.35;
+	text-size-adjust: 100%;
+	tab-size: 2;
+	-webkit-text-size-adjust: 100%;
+	touch-action: manipulation;
+	scroll-behavior: smooth;
+	background-color: var(--MI_THEME-bg);
+	color: var(--MI_THEME-fg);
+	accent-color: var(--MI_THEME-accent);
+
+	&.f-1 {
+		font-size: 15px;
+	}
+
+	&.f-2 {
+		font-size: 16px;
+	}
+
+	&.f-3 {
+		font-size: 17px;
+	}
+
+	&.useSystemFont {
+		font-family: system-ui;
+	}
+
+	&:not(.forceSelectableAll) {
+		user-select: none;
+		-webkit-user-select: none;
+	}
+}
+
+html._themeChanging_ {
+	view-transition-name: theme-changing;
+}
+
+html::view-transition-new(theme-changing) {
+	z-index: 4000000;
+}
+
+html::view-transition-old(theme-changing) {
+	z-index: 4000001;
+	animation: themeChangingOld 0.5s ease;
+	animation-fill-mode: forwards;
+}
+
+html::selection {
+	color: var(--MI_THEME-fgOnAccent);
+	background-color: var(--MI_THEME-accent);
+}
+
+@keyframes themeChangingOld {
+	0% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+html, body, main, div {
+	scrollbar-color: var(--MI_THEME-scrollbarHandle) transparent;
+	scrollbar-width: thin;
+}
+
+html,
+body,
+#misskey_app {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	overscroll-behavior: none;
+}
+
+body {
+	/* NOTE: htmlにも overflow: clip を設定したいところだが、設定すると何故か少なくともChromeで html が main thread scrolling になりパフォーマンスが(多分)落ちる */
+	overflow: clip;
+}
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+	color: inherit;
+	tap-highlight-color: transparent;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+
+	&:focus-visible {
+		outline-offset: 2px;
+	}
+
+	&[target="_blank"] {
+		-webkit-touch-callout: default;
+	}
+}
+
+textarea, input {
+	tap-highlight-color: transparent;
+	-webkit-tap-highlight-color: transparent;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+optgroup, option {
+	background: var(--MI_THEME-panel);
+	color: var(--MI_THEME-fg);
+}
+
+hr {
+	margin: 0;
+	border: none;
+	border-radius: 999px;
+	height: 1px;
+	background: var(--MI_THEME-divider);
+}
+
+rt {
+	white-space: initial;
+}
+
+:focus-visible {
+	outline: var(--MI_THEME-focus) solid 2px;
+	outline-offset: -2px;
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
+.ti {
+	width: 1.28em;
+	vertical-align: -12%;
+
+	&::before {
+		font-size: 128%;
+	}
+}
+
+.ti-fw {
+	display: inline-block;
+	text-align: center;
+}
+
+/* TODO: 引数は現在CSS変数経由で受け取っているが、将来的にはattr()を使った方が綺麗そう */
+._spacer {
+	width: 100%;
+	max-width: min(var(--MI_SPACER-w, 100%), calc(100% - (var(--MI_SPACER-max, 24px) * 2)));
+
+	/* marginを使って余白を表現すると、margin特有の親突き抜け仕様などが厄介になってくるので上下はpaddingを使う */
+	padding: var(--MI_SPACER-max, 24px) 0;
+	margin: 0 auto;
+
+	box-sizing: border-box;
+	container-type: inline-size;
+
+	/* 子に継承させない */
+	--MI_SPACER-w: initial;
+	--MI_SPACER-min: initial;
+	--MI_SPACER-max: initial;
+}
+
+._forceShrinkSpacer ._spacer {
+	max-width: min(var(--MI_SPACER-w, 100%), calc(100% - (var(--MI_SPACER-min, 12px) * 2)));
+	padding: var(--MI_SPACER-min, 12px) 0;
+}
+
+@container (max-width: 450px) {
+	._spacer {
+		max-width: min(var(--MI_SPACER-w, 100%), calc(100% - (var(--MI_SPACER-min, 12px) * 2)));
+		padding: var(--MI_SPACER-min, 12px) 0;
+	}
+}
+
+._pageContainer {
+	container-type: size;
+	contain: strict;
+	overflow: auto;
+	overscroll-behavior: contain;
+}
+
+._pageScrollable {
+	height: 100%;
+	overflow: clip;
+	overflow-y: scroll;
+	overscroll-behavior: contain;
+
+	/*
+	理屈は知らないけど、ここでbackgroundを設定しておかないと
+	スクロールコンテナーが少なくともChromeにおいて
+	main thread scrolling になってしまい、パフォーマンスが(多分)落ちる。
+	backgroundが透明だと裏側を描画しないといけなくなるとかそういう理由かもしれない
+	*/
+	background: var(--MI_THEME-bg);
+}
+
+._pageScrollableReversed {
+	height: 100%;
+	overflow: clip;
+	overflow-y: scroll;
+	overscroll-behavior: contain;
+	display: flex;
+	flex-direction: column-reverse;
+}
+
+._indicatorCircle {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	border-radius: 100%;
+	background: currentColor;
+}
+
+._indicateCounter {
+	display: inline-flex;
+	color: var(--MI_THEME-fgOnAccent);
+	font-weight: 700;
+	background: var(--MI_THEME-indicator);
+	height: 1.5em;
+	min-width: 1.5em;
+	align-items: center;
+	justify-content: center;
+	border-radius: 99rem;
+	padding: 0.3em 0.5em;
+}
+
+._selectable {
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+._selectableAtomic {
+	user-select: all;
+	-webkit-user-select: all;
+}
+
+._noSelect {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+}
+
+._nowrap {
+	white-space: pre !important;
+	word-wrap: normal !important; // https://codeday.me/jp/qa/20190424/690106.html
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+._modalBg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: var(--MI_THEME-modalBg);
+	-webkit-backdrop-filter: var(--MI-modalBgFilter);
+	backdrop-filter: var(--MI-modalBgFilter);
+}
+
+._shadow {
+	box-shadow: 0px 4px 32px var(--MI_THEME-shadow) !important;
+}
+
+._button {
+	@extend ._noSelect;
+	appearance: none;
+	display: inline-block;
+	padding: 0;
+	margin: 0; // for Safari
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: inherit;
+	touch-action: manipulation;
+	tap-highlight-color: transparent;
+	-webkit-tap-highlight-color: transparent;
+	font-size: 1em;
+	font-family: inherit;
+	line-height: inherit;
+	max-width: 100%;
+
+	&:disabled {
+		cursor: default;
+	}
+}
+
+._buttonPrimary {
+	@extend ._button;
+	color: var(--MI_THEME-fgOnAccent);
+	background: var(--MI_THEME-accent);
+
+	&:not(:disabled):hover {
+		background: hsl(from var(--MI_THEME-accent) h s calc(l + 5));
+	}
+
+	&:not(:disabled):active {
+		background: hsl(from var(--MI_THEME-accent) h s calc(l - 5));
+	}
+}
+
+._buttonGradate {
+	@extend ._buttonPrimary;
+	color: var(--MI_THEME-fgOnAccent);
+	background: linear-gradient(90deg, var(--MI_THEME-buttonGradateA), var(--MI_THEME-buttonGradateB));
+
+	&:not(:disabled):hover {
+		background: linear-gradient(90deg, hsl(from var(--MI_THEME-accent) h s calc(l + 5)), hsl(from var(--MI_THEME-accent) h s calc(l + 5)));
+	}
+
+	&:not(:disabled):active {
+		background: linear-gradient(90deg, hsl(from var(--MI_THEME-accent) h s calc(l + 5)), hsl(from var(--MI_THEME-accent) h s calc(l + 5)));
+	}
+}
+
+._help {
+	color: var(--MI_THEME-accent);
+	cursor: help;
+}
+
+._textButton {
+	@extend ._button;
+	color: var(--MI_THEME-accent);
+
+	&:focus-visible {
+		outline-offset: 2px;
+	}
+
+	&:not(:disabled):hover {
+		text-decoration: underline;
+	}
+}
+
+._panel {
+	background: var(--MI_THEME-panel);
+	border-radius: var(--MI-radius);
+	overflow: clip;
+}
+
+._margin {
+	margin: var(--MI-margin) 0;
+}
+
+._gaps_m {
+	display: flex;
+	flex-direction: column;
+	gap: 21px;
+}
+
+._gaps_s {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+._gaps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--MI-margin);
+}
+
+._buttons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+._buttonsCenter {
+	@extend ._buttons;
+
+	justify-content: center;
+}
+
+._borderButton {
+	@extend ._button;
+	display: block;
+	width: 100%;
+	padding: 10px;
+	box-sizing: border-box;
+	text-align: center;
+	border: solid 0.5px var(--MI_THEME-divider);
+	border-radius: var(--MI-radius);
+
+	&:active {
+		border-color: var(--MI_THEME-accent);
+	}
+}
+
+._popup {
+	background: var(--MI_THEME-popup);
+	border-radius: var(--MI-radius);
+	contain: content;
+}
+
+._acrylic {
+	background: color(from var(--MI_THEME-panel) srgb r g b / 0.5);
+	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
+	backdrop-filter: var(--MI-blur, blur(15px));
+}
+
+._formLinksGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-gap: 12px;
+}
+
+._beta {
+	margin-left: 0.7em;
+	font-size: 65%;
+	padding: 2px 3px;
+	color: var(--MI_THEME-accent);
+	border: solid 1px var(--MI_THEME-accent);
+	border-radius: 4px;
+	vertical-align: top;
+}
+
+._modified {
+	margin-left: 0.7em;
+	font-size: 65%;
+	padding: 2px 3px;
+	color: var(--MI_THEME-warn);
+	border: solid 1px var(--MI_THEME-warn);
+	border-radius: 4px;
+	vertical-align: top;
+}
+
+._table {
+	> ._row {
+		display: flex;
+
+		&:not(:last-child) {
+			margin-bottom: 16px;
+
+			@media (max-width: 500px) {
+				margin-bottom: 8px;
+			}
+		}
+
+		> ._cell {
+			flex: 1;
+
+			> ._label {
+				font-size: 80%;
+				opacity: 0.7;
+
+				> ._icon {
+					margin-right: 4px;
+					display: none;
+				}
+			}
+		}
+	}
+}
+
+._link {
+	color: var(--MI_THEME-link);
+}
+
+._love {
+	color: var(--MI_THEME-love);
+}
+
+._caption {
+	font-size: 0.8em;
+	opacity: 0.7;
+}
+
+._monospace {
+	font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace !important;
+}
+
+._zoom {
+	transition-duration: 0.5s, 0.5s;
+	transition-property: opacity, transform;
+	transition-timing-function: cubic-bezier(0,.5,.5,1);
+}
+
+._woodenFrame {
+	padding: 7px;
+	background: #8C4F26;
+	box-shadow: 0 6px 16px #0007, 0 0 1px 1px #693410, inset 0 0 2px 1px #ce8a5c;
+	border-radius: 10px;
+
+	--MI_THEME-bg: #F1E8DC;
+	--MI_THEME-fg: #693410;
+}
+
+html[data-color-scheme=dark] ._woodenFrame {
+	--MI_THEME-bg: #1d0c02;
+	--MI_THEME-fg: #F1E8DC;
+	--MI_THEME-panel: #192320;
+}
+
+._woodenFrameH {
+	display: flex;
+	gap: 6px;
+}
+
+._woodenFrameInner {
+	padding: 8px;
+	margin-top: 8px;
+	background: var(--MI_THEME-bg);
+	box-shadow: 0 0 2px 1px #ce8a5c, inset 0 0 1px 1px #693410;
+	border-radius: 6px;
+	color: var(--MI_THEME-fg);
+
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+._transition_zoom-enter-active, ._transition_zoom-leave-active {
+	transition: opacity 0.5s, transform 0.5s !important;
+}
+._transition_zoom-enter-from, ._transition_zoom-leave-to {
+	opacity: 0;
+	transform: scale(0.9);
+}
+
+._blink {
+	animation: blink 1s infinite;
+}
+
+@keyframes blink {
+	0% { opacity: 1; transform: scale(1); }
+	30% { opacity: 1; transform: scale(1); }
+	90% { opacity: 0; transform: scale(0.5); }
+}
+
+@keyframes global-tada {
+	from {
+		transform: scale3d(1, 1, 1);
+	}
+
+	10%,
+	20% {
+		transform: scale3d(0.91, 0.91, 0.91) rotate3d(0, 0, 1, -2deg);
+	}
+
+	30%,
+	70% {
+		transform: scale3d(1.09, 1.09, 1.09) rotate3d(0, 0, 1, 2deg);
+	}
+
+	50%,
+	90% {
+		transform: scale3d(1.09, 1.09, 1.09) rotate3d(0, 0, 1, -2deg);
+	}
+
+	to {
+		transform: scale3d(1, 1, 1);
+	}
+}
+
+._anime_bounce {
+	will-change: transform;
+  animation: global-bounce ease 0.7s;
+  animation-iteration-count: 1;
+  transform-origin: 50% 50%;
+}
+._anime_bounce_ready {
+	will-change: transform;
+	transform:  scaleX(0.90) scaleY(0.90) ;
+}
+._anime_bounce_standBy {
+	transition: transform 0.1s ease;
+}
+
+@keyframes global-bounce {
+  0% {
+    transform:  scaleX(0.90) scaleY(0.90) ;
+  }
+  19% {
+    transform:  scaleX(1.10) scaleY(1.10) ;
+  }
+  48% {
+    transform:  scaleX(0.95) scaleY(0.95) ;
+  }
+  100% {
+    transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+// MFM -----------------------------
+
+._mfm_blur_ {
+	filter: blur(6px);
+	transition: filter 0.3s;
+
+	&:hover {
+		filter: blur(0px);
+	}
+}
+
+.mfm-x2 {
+	--mfm-zoom-size: 200%;
+}
+
+.mfm-x3 {
+	--mfm-zoom-size: 400%;
+}
+
+.mfm-x4 {
+	--mfm-zoom-size: 600%;
+}
+
+.mfm-x2, .mfm-x3, .mfm-x4 {
+	font-size: var(--mfm-zoom-size);
+
+	.mfm-x2, .mfm-x3, .mfm-x4 {
+		/* only half effective */
+		font-size: calc(var(--mfm-zoom-size) / 2 + 50%);
+
+		.mfm-x2, .mfm-x3, .mfm-x4 {
+			/* disabled */
+			font-size: 100%;
+		}
+	}
+}
+
+._mfm_rainbow_fallback_ {
+	background-image: linear-gradient(to right, rgb(255, 0, 0) 0%, rgb(255, 165, 0) 17%, rgb(255, 255, 0) 33%, rgb(0, 255, 0) 50%, rgb(0, 255, 255) 67%, rgb(0, 0, 255) 83%, rgb(255, 0, 255) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+@keyframes mfm-spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+@keyframes mfm-spinX {
+	0% { transform: perspective(128px) rotateX(0deg); }
+	100% { transform: perspective(128px) rotateX(360deg); }
+}
+
+@keyframes mfm-spinY {
+	0% { transform: perspective(128px) rotateY(0deg); }
+	100% { transform: perspective(128px) rotateY(360deg); }
+}
+
+@keyframes mfm-jump {
+	0% { transform: translateY(0); }
+	25% { transform: translateY(-16px); }
+	50% { transform: translateY(0); }
+	75% { transform: translateY(-8px); }
+	100% { transform: translateY(0); }
+}
+
+@keyframes mfm-bounce {
+	0% { transform: translateY(0) scale(1, 1); }
+	25% { transform: translateY(-16px) scale(1, 1); }
+	50% { transform: translateY(0) scale(1, 1); }
+	75% { transform: translateY(0) scale(1.5, 0.75); }
+	100% { transform: translateY(0) scale(1, 1); }
+}
+
+// const val = () => `translate(${Math.floor(Math.random() * 20) - 10}px, ${Math.floor(Math.random() * 20) - 10}px)`;
+// let css = '';
+// for (let i = 0; i <= 100; i += 5) { css += `${i}% { transform: ${val()} }\n`; }
+@keyframes mfm-twitch {
+	0% { transform: translate(7px, -2px) }
+	5% { transform: translate(-3px, 1px) }
+	10% { transform: translate(-7px, -1px) }
+	15% { transform: translate(0px, -1px) }
+	20% { transform: translate(-8px, 6px) }
+	25% { transform: translate(-4px, -3px) }
+	30% { transform: translate(-4px, -6px) }
+	35% { transform: translate(-8px, -8px) }
+	40% { transform: translate(4px, 6px) }
+	45% { transform: translate(-3px, 1px) }
+	50% { transform: translate(2px, -10px) }
+	55% { transform: translate(-7px, 0px) }
+	60% { transform: translate(-2px, 4px) }
+	65% { transform: translate(3px, -8px) }
+	70% { transform: translate(6px, 7px) }
+	75% { transform: translate(-7px, -2px) }
+	80% { transform: translate(-7px, -8px) }
+	85% { transform: translate(9px, 3px) }
+	90% { transform: translate(-3px, -2px) }
+	95% { transform: translate(-10px, 2px) }
+	100% { transform: translate(-2px, -6px) }
+}
+
+// const val = () => `translate(${Math.floor(Math.random() * 6) - 3}px, ${Math.floor(Math.random() * 6) - 3}px) rotate(${Math.floor(Math.random() * 24) - 12}deg)`;
+// let css = '';
+// for (let i = 0; i <= 100; i += 5) { css += `${i}% { transform: ${val()} }\n`; }
+@keyframes mfm-shake {
+	0% { transform: translate(-3px, -1px) rotate(-8deg) }
+	5% { transform: translate(0px, -1px) rotate(-10deg) }
+	10% { transform: translate(1px, -3px) rotate(0deg) }
+	15% { transform: translate(1px, 1px) rotate(11deg) }
+	20% { transform: translate(-2px, 1px) rotate(1deg) }
+	25% { transform: translate(-1px, -2px) rotate(-2deg) }
+	30% { transform: translate(-1px, 2px) rotate(-3deg) }
+	35% { transform: translate(2px, 1px) rotate(6deg) }
+	40% { transform: translate(-2px, -3px) rotate(-9deg) }
+	45% { transform: translate(0px, -1px) rotate(-12deg) }
+	50% { transform: translate(1px, 2px) rotate(10deg) }
+	55% { transform: translate(0px, -3px) rotate(8deg) }
+	60% { transform: translate(1px, -1px) rotate(8deg) }
+	65% { transform: translate(0px, -1px) rotate(-7deg) }
+	70% { transform: translate(-1px, -3px) rotate(6deg) }
+	75% { transform: translate(0px, -2px) rotate(4deg) }
+	80% { transform: translate(-2px, -1px) rotate(3deg) }
+	85% { transform: translate(1px, -3px) rotate(-10deg) }
+	90% { transform: translate(1px, 0px) rotate(3deg) }
+	95% { transform: translate(-2px, 0px) rotate(-3deg) }
+	100% { transform: translate(2px, 1px) rotate(2deg) }
+}
+
+@keyframes mfm-rubberBand {
+	from { transform: scale3d(1, 1, 1); }
+	30% { transform: scale3d(1.25, 0.75, 1); }
+	40% { transform: scale3d(0.75, 1.25, 1); }
+	50% { transform: scale3d(1.15, 0.85, 1); }
+	65% { transform: scale3d(0.95, 1.05, 1); }
+	75% { transform: scale3d(1.05, 0.95, 1); }
+	to { transform: scale3d(1, 1, 1); }
+}
+
+@keyframes mfm-rainbow {
+	0% { filter: hue-rotate(0deg) contrast(150%) saturate(150%); }
+	100% { filter: hue-rotate(360deg) contrast(150%) saturate(150%); }
+}

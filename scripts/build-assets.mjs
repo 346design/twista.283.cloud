@@ -1,0 +1,29 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { load as loadYaml } from 'js-yaml';
+import { buildTarball } from './tarball.mjs';
+
+const configDir = fileURLToPath(new URL('../.config', import.meta.url));
+const configPath = process.env.MISSKEY_CONFIG_YML
+	? path.resolve(configDir, process.env.MISSKEY_CONFIG_YML)
+	: process.env.NODE_ENV === 'test'
+		? path.resolve(configDir, 'test.yml')
+		: path.resolve(configDir, 'default.yml');
+
+async function loadConfig() {
+	return fs.readFile(configPath, 'utf-8').then(data => loadYaml(data)).catch(() => null);
+}
+
+async function build() {
+	await Promise.all([
+		loadConfig().then(config => config?.publishTarballInsteadOfProvideRepositoryUrl && buildTarball()),
+	]);
+}
+
+await build();

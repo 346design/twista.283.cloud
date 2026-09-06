@@ -1,0 +1,46 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"noEmitOnError": false,
+		"noImplicitAny": true,
+		"noImplicitReturns": false,
+		"noUnusedParameters": false,
+		"noUnusedLocals": false,
+		"noFallthroughCasesInSwitch": true,
+		"declaration": false,
+		"sourceMap": true,
+		"target": "ES2022",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"allowSyntheticDefaultImports": true,
+		"removeComments": false,
+		"noLib": false,
+		"strict": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": false,
+		"skipLibCheck": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "@kitajs/html",
+		"paths": {
+			"@/*": ["../src/*"]
+		},
+		"typeRoots": [
+			"../node_modules/@types",
+			"../src/@types"
+		],
+		"lib": [
+			"esnext"
+		],
+		"types": ["node"]
+	},
+	"compileOnSave": false,
+	"include": [
+		"./**/*.ts",
+		"../src/**/*.test.ts",
+		"../src/@types/**/*.ts"
+	]
+}

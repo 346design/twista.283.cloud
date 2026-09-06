@@ -1,27 +1,55 @@
 # Visual Studio Code
 /.vscode
+!/.vscode/extensions.json
 
 # Intelij-IDEA
 /.idea
 
 # Node.js
-/node_modules
+node_modules
+report.*.json
 
-# yarn
-yarn.lock
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+packages/frontend/.yarn/cache
+packages/backend/.yarn/cache
+packages/sw/.yarn/cache
+
+# pnpm
+.pnpm-store
+
+# Playwright
+packages/frontend/test/e2e/artifacts
+
+# Coverage
+coverage
 
 # config
 /.config/*
 !/.config/example.yml
-!/.config/mongo_initdb_example.js
+!/.config/docker_example.yml
+!/.config/docker_example.env
+!/.config/playwright-devcontainer.yml
+docker-compose.yml
+/compose.yml
+.devcontainer/compose.yml
+!/.devcontainer/compose.yml
 
 # misskey
 /build
-/built
+built
+built-test
+js-built
+src-js
 /data
 /.cache-loader
 /db
-/elasticsearch
+/meili_data
 npm-debug.log
 *.pem
 run.bat
@@ -32,3 +60,26 @@ api-docs.json
 .DS_Store
 /files
 ormconfig.json
+temp
+/packages/frontend/src/**/*.stories.ts
+tsdoc-metadata.json
+misskey-assets
+
+# Vite temporary files
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+vite.config.local-dev.js.timestamp-*
+vite.config.local-dev.ts.timestamp-*
+
+# blender backups
+*.blend1
+*.blend2
+*.blend3
+*.blend4
+*.blend5
+
+# VSCode addon
+.favorites.json
+
+# Affinity
+*.af~lock~

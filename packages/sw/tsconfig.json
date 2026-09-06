@@ -1,0 +1,41 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"noEmitOnError": false,
+		"noImplicitAny": false,
+		"noImplicitReturns": true,
+		"noUnusedParameters": false,
+		"noUnusedLocals": true,
+		"noFallthroughCasesInSwitch": true,
+		"declaration": false,
+		"sourceMap": false,
+		"target": "ES2022",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"removeComments": false,
+		"skipLibCheck": true,
+		"noLib": false,
+		"strict": true,
+		"strictNullChecks": true,
+		"experimentalDecorators": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"paths": {
+			"@/*": ["./src/*"],
+			"@@/*": ["../frontend-shared/*"]
+		},
+		"typeRoots": [
+			"./node_modules/@types",
+			"./src/@types"
+		],
+		"libReplacement": true,
+		"lib": [
+			"esnext",
+			"webworker"
+		]
+	},
+	"compileOnSave": false,
+	"include": [
+		"./**/*.ts"
+	]
+}

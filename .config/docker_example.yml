@@ -1,0 +1,296 @@
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Misskey configuration
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#   ┌─────┐
+#───┘ URL └─────────────────────────────────────────────────────
+
+# Final accessible URL seen by a user.
+# You can set url from an environment variable instead.
+url: https://example.tld/
+
+# ONCE YOU HAVE STARTED THE INSTANCE, DO NOT CHANGE THE
+# URL SETTINGS AFTER THAT!
+
+#   ┌───────────────────────┐
+#───┘ Port and TLS settings └───────────────────────────────────
+
+#
+# Misskey requires a reverse proxy to support HTTPS connections.
+#
+#                 +----- https://example.tld/ ------------+
+#   +------+      |+-------------+      +----------------+|
+#   | User | ---> || Proxy (443) | ---> | Misskey (3000) ||
+#   +------+      |+-------------+      +----------------+|
+#                 +---------------------------------------+
+#
+#   You need to set up a reverse proxy. (e.g. nginx)
+#   An encrypted connection with HTTPS is highly recommended
+#   because tokens may be transferred in GET requests.
+
+# The port that your Misskey server should listen on.
+port: 3000
+
+#   ┌──────────────────────────┐
+#───┘ PostgreSQL configuration └────────────────────────────────
+
+db:
+  host: db
+  port: 5432
+
+  # Database name
+  # You can set db from an environment variable instead.
+  db: misskey
+
+  # Auth
+  # You can set user and pass from environment variables instead.
+  user: example-misskey-user
+  pass: example-misskey-pass
+
+  # Whether disable Caching queries
+  #disableCache: true
+
+  # Extra Connection options
+  #extra:
+  #  ssl: true
+
+dbReplications: false
+
+# You can configure any number of replicas here
+#dbSlaves:
+#  -
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
+#  -
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
+
+#   ┌─────────────────────┐
+#───┘ Redis configuration └─────────────────────────────────────
+
+redis:
+  host: redis
+  port: 6379
+  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+  #pass: example-pass
+  #prefix: example-prefix
+  #db: 1
+
+#redisForPubsub:
+#  host: redis
+#  port: 6379
+#  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+#  #pass: example-pass
+#  #prefix: example-prefix
+#  #db: 1
+
+#redisForJobQueue:
+#  host: redis
+#  port: 6379
+#  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+#  #pass: example-pass
+#  #prefix: example-prefix
+#  #db: 1
+
+#redisForTimelines:
+#  host: redis
+#  port: 6379
+#  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+#  #pass: example-pass
+#  #prefix: example-prefix
+#  #db: 1
+
+#redisForReactions:
+#  host: redis
+#  port: 6379
+#  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+#  #pass: example-pass
+#  #prefix: example-prefix
+#  #db: 1
+
+#   ┌───────────────────────────────┐
+#───┘ Fulltext search configuration └─────────────────────────────
+
+# These are the setting items for the full-text search provider.
+fulltextSearch:
+  # You can select the ID generation method.
+  # - sqlLike (default)
+  #   Use SQL-like search.
+  #   This is a standard feature of PostgreSQL, so no special extensions are required.
+  # - sqlPgroonga
+  #   Use pgroonga.
+  #   You need to install pgroonga and configure it as a PostgreSQL extension.
+  #   In addition to the above, you need to create a pgroonga index on the text column of the note table.
+  #   see: https://pgroonga.github.io/tutorial/
+  # - meilisearch
+  #   Use Meilisearch.
+  #   You need to install Meilisearch and configure.
+  provider: sqlLike
+
+# For Meilisearch settings.
+# If you select "meilisearch" for "fulltextSearch.provider", it must be set.
+# You can set scope to local (default value) or global
+# (include notes from remote).
+
+#meilisearch:
+#  host: meilisearch
+#  port: 7700
+#  apiKey: ''
+#  ssl: true
+#  index: ''
+#  scope: local
+
+#   ┌───────────────┐
+#───┘ ID generation └───────────────────────────────────────────
+
+# You can select the ID generation method.
+# You don't usually need to change this setting, but you can
+# change it according to your preferences.
+
+# Available methods:
+# aid ... Short, Millisecond accuracy
+# aidx ... Millisecond accuracy
+# meid ... Similar to ObjectID, Millisecond accuracy
+# ulid ... Millisecond accuracy
+# objectid ... This is left for backward compatibility
+
+# ONCE YOU HAVE STARTED THE INSTANCE, DO NOT CHANGE THE
+# ID SETTINGS AFTER THAT!
+
+id: 'aidx'
+
+#   ┌────────────────┐
+#───┘ Error tracking └──────────────────────────────────────────
+
+# Sentry is available for error tracking.
+# See the Sentry documentation for more details on options.
+
+#sentryForBackend:
+#  enableNodeProfiling: true
+#  # Specify Sentry integration names to disable individual auto-instrumentation.
+#  # The names are integration .name values, not factory function names.
+#  # To check enabled names, set `options.debug: true` and see
+#  # "Integration installed: <name>" in the Sentry logs.
+#  #
+#  # As of 2026-07-07 / @sentry/node 10.62.0, useful names for Misskey include:
+#  #   Postgres  ... DB queries (when pg is externalized)
+#  #   Redis     ... ioredis commands
+#  #   Fastify   ... inbound HTTP routes
+#  #   Http      ... inbound/outbound HTTP; disabling this can also affect request isolation
+#  #   NodeFetch ... fetch/undici requests
+#  disabledIntegrations: ['Postgres']
+#  options:
+#    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+#    # By default, Misskey prevents Sentry trace headers (`sentry-trace` and
+#    # `baggage`) from being sent to remote ActivityPub/Webhook/etc. hosts.
+#    # To intentionally propagate distributed traces to trusted internal services,
+#    # list only those internal URL patterns here.
+#    # Avoid broad patterns that match remote servers unless you intentionally
+#    # want to restore Sentry's legacy behavior of propagating traces to all
+#    # outbound HTTP requests.
+#    #tracePropagationTargets: []
+#    # Internal allowlist example:
+#    #tracePropagationTargets:
+#    #  - 'internal-service.example'
+
+#sentryForFrontend:
+#  vueIntegration:
+#    tracingOptions:
+#      trackComponents: true
+#  browserTracingIntegration:
+#  replayIntegration:
+#  options:
+#    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+
+#   ┌─────────────────────┐
+#───┘ Other configuration └─────────────────────────────────────
+
+# Whether disable HSTS
+#disableHsts: true
+
+# Number of worker processes
+#clusterLimit: 1
+
+# Number of threads of extra thread pool for CPU-intensive tasks (per worker)
+#threadPoolSize: 1
+
+# Job concurrency per worker
+# deliverJobConcurrency: 128
+# inboxJobConcurrency: 16
+
+# Job rate limiter
+# deliverJobPerSec: 128
+# inboxJobPerSec: 32
+
+# Job attempts
+# deliverJobMaxAttempts: 12
+# inboxJobMaxAttempts: 8
+
+# IP address family used for outgoing request (ipv4, ipv6 or dual)
+#outgoingAddressFamily: ipv4
+
+# Proxy for HTTP/HTTPS
+#proxy: http://127.0.0.1:3128
+
+proxyBypassHosts:
+  - api.deepl.com
+  - api-free.deepl.com
+  - www.recaptcha.net
+  - hcaptcha.com
+  - challenges.cloudflare.com
+
+# Proxy for SMTP/SMTPS
+#proxySmtp: http://127.0.0.1:3128   # use HTTP/1.1 CONNECT
+#proxySmtp: socks4://127.0.0.1:1080 # use SOCKS4
+#proxySmtp: socks5://127.0.0.1:1080 # use SOCKS5
+
+# Media Proxy
+#mediaProxy: https://example.com/proxy
+
+# For security reasons, uploading attachments from the intranet is prohibited,
+# but exceptions can be made from the following settings. Default value is "undefined".
+# Read changelog to learn more (Improvements of 12.90.0 (2021/09/04)).
+#allowedPrivateNetworks:
+#  - '127.0.0.1/32'
+
+# Upload or download file size limits (bytes)
+#maxFileSize: 262144000
+
+# Log settings
+# logging:
+#   # Log output format. "json" outputs one-line JSON; defaults to "pretty".
+#   format: pretty
+#   # Minimum level for all loggers. Defaults to info in production and debug otherwise.
+#   level: info
+#   # The longest matching logger domain takes precedence over the global level.
+#   domains:
+#     core.boot: info
+#     queue: error
+#     queue.deliver: debug
+#     db.sql: off
+#   # HTTP status classes to record in the access log. No output when unspecified.
+#   access:
+#     statusClasses:
+#       - '2xx'
+#       - '3xx'
+#       - '4xx'
+#       - '5xx'
+#     # Enable body logging explicitly only during development.
+#     bodies:
+#       request: false
+#       response: false
+#       # 16 KiB by default, up to 128 KiB.
+#       maxBytes: 16384
+#   sql:
+#     # Outputs query parameters during SQL execution to the log.
+#     # default: false
+#     enableQueryParamLogging: false
+#     # Disable query truncation. If set to true, the full text of the query will be output to the log.
+#     # default: false
+#     disableQueryTruncation: false
